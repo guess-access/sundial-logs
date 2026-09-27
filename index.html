@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=60a7a115-1330-4d32-ad1d-1170bab742d0
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prestige Dealer Alliance Timelogs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --field:#081726;
+  --panel:#0E2436;
+  --panel-2:#123049;
+  --line:#1E4463;
+  --line-soft:#16354E;
+  --paper:#E8F0F6;
+  --muted:#8FAAC2;
+  --signal:#43D6A0;
+  --signal-ink:#04241A;
+  --amber:#F0A93B;
+  --amber-ink:#2A1A02;
+  --lunch:#9D9AF5;
+  --alert:#FF7A70;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--field);
+  color:var(--paper);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.5;
+  min-height:100%;
+}
+button{font:inherit;color:inherit}
+input,select{font:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+.wrap{width:100%;max-width:1040px;margin:0 auto;padding:20px 18px 64px}
+
+/* ---------- shared bits ---------- */
+.readout{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r)}
+.muted{color:var(--muted)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 16px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel-2);color:var(--paper);cursor:pointer;
+  font-weight:500;transition:background .12s ease,border-color .12s ease;
+}
+.btn:hover:not(:disabled){background:#163956;border-color:#2A5A81}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn-quiet{background:transparent}
+.btn-quiet:hover:not(:disabled){background:var(--panel-2)}
+.btn-danger{color:var(--alert);border-color:#4A2530}
+.btn-danger:hover:not(:disabled){background:#2B151B;border-color:#6A343F}
+.field{display:block;margin:0 0 14px}
+.field span{display:block;font-size:.86rem;color:var(--muted);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:11px 12px;border-radius:8px;
+  border:1px solid var(--line);background:#071A2A;color:var(--paper);
+}
+.field input::placeholder{color:#5F7E99}
+.note{font-size:.84rem;color:var(--muted);margin:10px 0 0}
+.err{color:var(--alert);font-size:.9rem;margin:0 0 12px;min-height:1.2em}
+.hidden{display:none !important}
+
+/* ---------- the clock, the hero ---------- */
+.hero{padding:26px 22px 22px;text-align:center}
+.hero-time{
+  display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-weight:500;letter-spacing:-.02em;line-height:1;
+  font-size:clamp(3rem,15vw,5.2rem);
+}
+.hero-sec{font-size:.42em;color:var(--signal);font-weight:400}
+.hero-date{margin:10px 0 0;color:var(--muted);font-size:.95rem}
+
+/* ---------- auth ---------- */
+.auth{max-width:420px;margin:min(6vh,54px) auto 0}
+.auth h1{font-size:1.35rem;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+.auth p.sub{margin:0 0 22px;color:var(--muted);font-size:.94rem}
+.auth-card{padding:22px}
+.auth .btn{width:100%}
+.switcher{margin:16px 0 0;text-align:center;font-size:.9rem;color:var(--muted)}
+.linkish{background:none;border:0;padding:0;color:var(--signal);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- app chrome ---------- */
+.topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:0 0 16px;border-bottom:1px solid var(--line-soft);margin-bottom:18px}
+.who{margin-right:auto;min-width:0}
+.who strong{display:block;font-weight:600;letter-spacing:-.01em}
+.who span{font-size:.84rem;color:var(--muted)}
+.nav{display:flex;gap:6px;margin:0 0 18px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
+.tab:hover{color:var(--paper)}
+.nav-leave{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;border:1px solid var(--signal);color:var(--signal);text-decoration:none;font-weight:500;transition:background .12s ease}
+.nav-leave:hover{background:var(--panel-2)}
+.nav-leave:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.tab[aria-selected="true"]{background:var(--panel-2);border-color:var(--line);color:var(--paper);font-weight:500}
+
+/* ---------- status ---------- */
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:820px){.grid{grid-template-columns:1.05fr .95fr}}
+.status{padding:20px 22px}
+.chip{display:inline-flex;align-items:center;gap:9px;padding:6px 13px 6px 11px;border-radius:999px;font-size:.88rem;font-weight:500;border:1px solid var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.chip-off{color:var(--muted)}
+.chip-in{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
+.chip-brk{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
+.elapsed{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:2.6rem;line-height:1.1;margin:16px 0 2px;letter-spacing:-.02em}
+.elapsed small{font-size:.9rem;font-family:var(--sans);color:var(--muted);display:block;margin-top:6px;letter-spacing:0}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px;margin-top:10px}
+.actions .btn{padding:14px 12px;font-weight:600}
+.row-label{margin:20px 0 0;font-size:.86rem;color:var(--muted)}
+.btn-in{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.btn-in:hover:not(:disabled){background:#57E7B2;border-color:#57E7B2}
+.btn-brk{background:transparent;color:var(--amber);border-color:#5A4220}
+.btn-brk:hover:not(:disabled){background:#2A1F0B}
+.btn-brk.live{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+.btn-lunch{background:transparent;color:var(--lunch);border-color:#3A3A6E}
+.btn-lunch:hover:not(:disabled){background:#191A38}
+.btn-lunch.live{background:var(--lunch);color:#12122E;border-color:var(--lunch)}
+.btn-out{background:transparent;border-color:var(--line)}
+.chip-lunch{color:var(--lunch);border-color:#3A3A6E;background:#191A38}
+
+/* ---------- lists & tables ---------- */
+.block{padding:18px 20px}
+.block h2{font-size:1rem;font-weight:600;margin:0 0 14px;letter-spacing:-.01em}
+.punches{list-style:none;margin:0;padding:0}
+.punches li{display:flex;align-items:baseline;gap:12px;padding:9px 0;border-top:1px solid var(--line-soft)}
+.punches li:first-child{border-top:0}
+.punches .p-when{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.95rem;width:5.4em;flex:none}
+.punches .p-what{flex:1;min-width:0}
+.punches .p-tag{font-size:.8rem;color:var(--muted)}
+.empty{color:var(--muted);font-size:.93rem;margin:0;padding:6px 0}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:600px}
+th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line-soft);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.85rem;border-top:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tfoot td{border-top:1px solid var(--line);font-weight:600}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.toolbar .field{margin:0;flex:1 1 160px}
+.totals{display:flex;gap:26px;flex-wrap:wrap;margin:0 0 18px}
+.totals div span{display:block;font-size:.84rem;color:var(--muted)}
+.totals div strong{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:500}
+.onnow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px;padding:0;list-style:none}
+.onnow li{padding:6px 12px;border-radius:999px;background:#0A2C23;border:1px solid #1C5A46;color:var(--signal);font-size:.88rem}
+
+dialog{border:1px solid var(--line);background:var(--panel);color:var(--paper);border-radius:var(--r);padding:22px;width:min(400px,92vw)}
+#impDlg{width:min(680px,94vw)}
+#impDlg textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper);font-family:var(--mono);font-size:.84rem;resize:vertical}
+#impDlg code{background:#071A2A;border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px}
+#impDlg input[type=file]{color:var(--muted);font-size:.88rem;max-width:100%}
+#impResult{max-height:220px;overflow:auto;margin:6px 0 14px;font-size:.88rem}
+#impResult ul{margin:0;padding-left:18px}
+#impResult li{margin:3px 0}
+#impResult .bad{color:var(--alert)}
+#impResult .note{color:var(--amber)}
+#impResult .pin{font-family:var(--mono);color:var(--amber)}
+#actDlg{width:min(440px,92vw)}
+#actBody textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper);resize:vertical;font-family:inherit}
+.reqtag{font-size:.78rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.reqtag.pending{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
+.reqtag.declined{color:var(--alert);border-color:#4A2530;background:#2B151B}
+.reqtag.approved{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
+dialog::backdrop{background:rgba(2,10,18,.72)}
+dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:11px 18px;font-size:.92rem;z-index:50;box-shadow:0 8px 24px rgba(2,10,18,.5)
+}
+/* ---------- the big centre title ---------- */
+.brand{padding:2px 0 18px;text-align:center}
+.brand-title{
+  margin:0;font-weight:700;letter-spacing:-.015em;line-height:1.12;
+  font-size:clamp(1.55rem,5.4vw,2.9rem);color:#E4F1FA;
+}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .brand-title{
+    background:linear-gradient(180deg,#FFFFFF 0%,#D3E7F4 45%,#7FCDB2 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+  }
+}
+.brand-rule{
+  display:block;width:min(340px,64%);height:3px;margin:13px auto 0;border-radius:3px;
+  background:linear-gradient(90deg,transparent,var(--signal) 20%,var(--amber) 80%,transparent);
+}
+.brand-sub{
+  margin:8px 0 0;font-size:clamp(.78rem,2.3vw,1.02rem);font-weight:600;
+  letter-spacing:.36em;text-indent:.36em;text-transform:uppercase;color:var(--muted);
+}
+
+/* ---------- edit log / who changed what ---------- */
+.edited-by{display:block;margin-top:4px;font-size:.74rem;color:var(--amber)}
+.audit{margin-top:16px}
+#auditList .p-when{width:9em;white-space:normal}
+.audit .a-by{font-size:.8rem;color:var(--amber);flex:none}
+.audit-sign{margin:12px 0 0;padding-top:12px;border-top:1px dashed var(--line);color:var(--muted);font-size:.88rem}
+.audit-sign strong{color:var(--signal);font-weight:600}
+#auditList .p-what{color:var(--paper)}
+
+/* ---------- schedule editor ---------- */
+#schedDlg{width:min(660px,94vw);max-height:88vh;overflow:auto}
+.sched-quick{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.sched-quick .btn{padding:7px 12px;font-size:.85rem}
+.sched-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.sched-row:first-child{border-top:0}
+.sched-day{width:3.2em;flex:none;font-weight:600;font-size:.92rem}
+.sched-kind{flex:1 1 150px;min-width:132px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper)}
+.sched-times{display:flex;align-items:center;gap:6px;flex:2 1 268px;flex-wrap:wrap}
+.sched-times input[type=time]{
+  padding:8px 9px;border-radius:8px;border:1px solid var(--line);background:#071A2A;
+  color:var(--paper);font-family:var(--mono);font-size:.88rem;width:7.6em
+}
+.sched-plus{font-size:.9rem}
+.sched-row[data-kind="off"] .sched-times,
+.sched-row[data-kind="flex"] .sched-times{display:none}
+.sched-row[data-kind="fixed"] .t3,
+.sched-row[data-kind="fixed"] .t4,
+.sched-row[data-kind="fixed"] .sched-plus{display:none}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ BIG TITLE ============ -->
+  <header class="brand">
+    <h1 class="brand-title">Prestige Dealer Alliance</h1>
+    <p class="brand-sub">Timelogs</p>
+    <span class="brand-rule" aria-hidden="true"></span>
+  </header>
+
+  <!-- ============ AUTH ============ -->
+  <section id="auth" class="auth">
+    <div class="panel hero">
+      <span class="readout hero-time"><span id="authHH">--:--</span><span class="hero-sec" id="authSS">:--</span></span>
+      <p class="hero-date" id="authDate"></p>
+    </div>
+
+    <div class="panel auth-card" style="margin-top:16px">
+      <h1 id="authTitle">Sign in to clock</h1>
+      <p class="sub" id="authSub">Every person keeps their own record.</p>
+      <p class="err" id="authErr"></p>
+      <form id="authForm" autocomplete="off">
+        <label class="field" id="fName"><span>Full name</span>
+          <input type="text" id="inName" maxlength="60" placeholder="Maria Santos">
+        </label>
+        <label class="field"><span>Username</span>
+          <input type="text" id="inUser" maxlength="20" placeholder="msantos" autocapitalize="none" spellcheck="false">
+        </label>
+        <label class="field"><span>Passcode</span>
+          <input type="password" id="inPin" maxlength="32" placeholder="At least 4 characters">
+        </label>
+        <label class="field hidden" id="fPin2"><span>Repeat passcode</span>
+          <input type="password" id="inPin2" maxlength="32">
+        </label>
+        <button class="btn btn-in" type="submit" id="authGo">Sign in</button>
+      </form>
+      <p class="switcher" id="authSwitch"></p>
+    </div>
+    <p class="note">Everything is kept on the server, so you can sign in from any phone or computer and see the same records.</p>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <section id="app" class="hidden">
+    <div class="topbar">
+      <div class="who">
+        <strong id="whoName"></strong>
+        <span id="whoRole"></span>
+      </div>
+      <button class="btn btn-quiet" id="btnPin">Change passcode</button>
+      <button class="btn btn-quiet" id="btnOut">Sign out</button>
+    </div>
+
+    <div class="nav" role="tablist">
+      <button class="tab" role="tab" data-view="clock" aria-selected="true">Clock</button>
+      <button class="tab" role="tab" data-view="sheet" aria-selected="false">My timesheet</button>
+      <button class="tab hidden" role="tab" data-view="team" aria-selected="false" id="tabTeam">Team</button>
+      <a class="nav-leave" id="btnLeave" href="https://cmph48dib0036y043ztgjjk9i.zapier.app/page" target="_blank" rel="noopener noreferrer">Leave Request Form <span aria-hidden="true">↗</span></a>
+    </div>
+
+    <!-- clock view -->
+    <div id="vClock">
+      <div class="grid">
+        <div class="panel status">
+          <span class="readout hero-time" style="font-size:clamp(2.6rem,11vw,4rem)"><span id="hh">--:--</span><span class="hero-sec" id="ss">:--</span></span>
+          <p class="hero-date" id="today" style="text-align:left;margin-top:8px"></p>
+          <p class="hero-date" id="schedLine" style="text-align:left;margin-top:2px"></p>
+          <div style="margin-top:18px">
+            <span class="chip chip-off" id="chip"><i class="dot"></i><span id="chipText">Off the clock</span></span>
+          </div>
+          <p class="elapsed readout" id="elapsed" aria-live="polite">0:00<small id="elapsedNote">No open shift today</small></p>
+          <p class="row-label">Your status</p>
+          <div class="actions" id="statusRow"></div>
+        </div>
+
+        <div class="panel block">
+          <h2>Today</h2>
+          <ul class="punches" id="punchList"></ul>
+          <p class="empty hidden" id="punchEmpty">Nothing recorded yet today. Clock in when you start.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- timesheet view -->
+    <div id="vSheet" class="hidden">
+      <div class="panel block">
+        <div class="toolbar">
+          <label class="field hidden" id="fPerson"><span>Person</span><select id="sPerson"></select></label>
+          <label class="field"><span>From</span><input type="date" id="sFrom"></label>
+          <label class="field"><span>To</span><input type="date" id="sTo"></label>
+          <button class="btn" id="sWeek">This week</button>
+          <button class="btn" id="sExport">Export timesheet</button>
+          <button class="btn" id="sLog">Export punch log</button>
+        </div>
+        <div class="totals">
+          <div><span>Days worked</span><strong id="tDays">0</strong></div>
+          <div><span>Break time</span><strong id="tBreak">0:00</strong></div>
+          <div><span>Total worked</span><strong id="tWorked">0:00</strong></div>
+        </div>
+        <div class="scroller">
+          <table id="sheetTable">
+            <thead><tr><th>Date</th><th>Clock in</th><th>Clock out</th><th class="num">Break 1</th><th class="num">Break 2</th><th class="num">Lunch</th><th class="num">Worked</th><th></th></tr></thead>
+            <tbody id="sheetBody"></tbody>
+          </table>
+        </div>
+        <p class="empty hidden" id="sheetEmpty">No shifts in this range.</p>
+      </div>
+
+      <!-- change log: who edited these rows, always at the bottom of the sheet -->
+      <div class="panel block audit hidden" id="auditBlock">
+        <h2>Change history</h2>
+        <ul class="punches" id="auditList"></ul>
+        <p class="audit-sign" id="auditSign"></p>
+      </div>
+    </div>
+
+    <!-- team view -->
+    <div id="vTeam" class="hidden">
+      <div class="panel block" style="margin-bottom:16px">
+        <h2>Edit requests <span class="muted" id="reqBadge" style="font-weight:400"></span></h2>
+        <ul class="punches" id="reqList"></ul>
+        <p class="empty hidden" id="reqEmpty">No pending requests.</p>
+      </div>
+
+      <div class="panel block" style="margin-bottom:16px">
+        <h2>On the clock now</h2>
+        <ul class="onnow" id="onNow"></ul>
+        <p class="empty hidden" id="onNowEmpty">Nobody is clocked in.</p>
+      </div>
+
+      <div class="panel block" style="margin-bottom:16px">
+        <h2>People</h2>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Schedule (ET)</th><th>Status</th><th></th></tr></thead>
+            <tbody id="teamBody"></tbody>
+          </table>
+        </div>
+        <div class="toolbar" style="margin:18px 0 0">
+          <button class="btn" id="tAdd">Add a person</button>
+          <button class="btn btn-in" id="tImport">Import from CSV</button>
+          <button class="btn" id="tExport">Export every timesheet</button>
+          <button class="btn" id="tLog">Export every punch log</button>
+          <label class="field" style="flex:0 0 auto"><span>Self sign-up</span>
+            <select id="tSignup"><option value="on">Anyone can create an account</option><option value="off">Admin adds people only</option></select>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<dialog id="schedDlg">
+  <h2 id="schedTitle">Schedule</h2>
+  <p class="note" style="margin:-8px 0 14px">Times are Eastern. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.</p>
+  <div class="sched-quick">
+    <button class="btn btn-quiet" id="schedWeek" type="button">Copy Monday to weekdays</button>
+    <button class="btn btn-quiet" id="schedAll" type="button">Copy Monday to every day</button>
+    <button class="btn btn-quiet" id="schedOff" type="button">All days off</button>
+  </div>
+  <div id="schedRows"></div>
+  <p class="err" id="schedErr"></p>
+  <div class="dlg-actions">
+    <button class="btn btn-quiet" id="schedCancel" type="button">Cancel</button>
+    <button class="btn btn-in" id="schedSave" type="button">Save schedule</button>
+  </div>
+</dialog>
+
+<dialog id="impDlg">
+  <h2>Import people and schedules</h2>
+  <p class="note" style="margin:0 0 14px">
+    One person per row, in this column order — a header row is optional:<br>
+    <code class="readout" style="color:var(--paper);display:block;margin-top:8px;font-size:.82rem;line-height:1.7">name, username, passcode, role, mon, tue, wed, thu, fri, sat, sun</code>
+    Each day is a shift like <code class="readout">9:00 AM-6:00 PM</code> or <code class="readout">21:00-06:00</code>, or <code class="readout">off</code> / <code class="readout">Rest day</code> for a day off.
+    Two shifts in one cell keep both windows, e.g. <code class="readout">8:00 AM-12:00 PM + 1:00 PM-5:00 PM</code>. Write <code class="readout">Flexible</code> for a day with no fixed hours.
+    Leave every day blank (or write <code class="readout">Executive</code>) for no fixed schedule. Comma or tab separated both work.
+    Leave the passcode blank and one gets generated. An existing username is updated, not duplicated. All times are Eastern.
+  </p>
+  <input type="file" id="impFile" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" style="margin-bottom:10px">
+  <textarea id="impText" rows="6" spellcheck="false" placeholder="Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off"></textarea>
+  <p class="err" id="impErr"></p>
+  <div id="impResult"></div>
+  <div class="dlg-actions">
+    <button class="btn btn-quiet" id="impTemplate" type="button" style="margin-right:auto">Download template</button>
+    <button class="btn btn-quiet" id="impClose" type="button">Close</button>
+    <button class="btn btn-in" id="impGo" type="button">Import</button>
+  </div>
+</dialog>
+
+<dialog id="actDlg">
+  <h2 id="actTitle"></h2>
+  <div id="actBody"></div>
+  <p class="err" id="actErr"></p>
+  <div class="dlg-actions" id="actButtons"></div>
+</dialog>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm">
+    <h2 id="dlgTitle"></h2>
+    <p class="err" id="dlgErr"></p>
+    <div id="dlgBody"></div>
+    <div class="dlg-actions">
+      <button class="btn btn-quiet" value="cancel" type="submit">Cancel</button>
+      <button class="btn btn-in" id="dlgOk" value="ok" type="button">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- server sync ----------------
+   The server is the single source of truth. This device keeps only a sign-in token
+   (AUTH_KEY); users, shifts, requests and settings all live on the server, so the
+   admin account is created once and every device sees the same people. */
+var API = "/api";
+var AUTH_KEY = "shiftclock.auth";
+var LEGACY_KEY = "shiftclock.v1";
+var state = { users:[], entries:[], requests:[], settings:{ signup:true }, session:null };
+var auth = loadAuth();
+state.session = auth ? auth.userId : null;
+var base = snapshot(state);
+var meta = { ready:false, needsSetup:false, signup:true, offline:false, reason:"" };
+var failed = false, runP = null, again = false, lastOfflineToast = 0;
+
+function J(x){ return JSON.stringify(x); }
+function idMap(list){ var m = {}; (list || []).forEach(function(x){ m[x.id] = x; }); return m; }
+function loadAuth(){
+  try{ var a = JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); return (a && a.token && a.userId) ? a : null; }
+  catch(e){ return null; }
+}
+function storeAuth(a){
+  auth = a; state.session = a ? a.userId : null;
+  try{ if(a) localStorage.setItem(AUTH_KEY, J(a)); else localStorage.removeItem(AUTH_KEY); }catch(e){}
+}
+function nextId(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+function snapshot(s){
+  function m(list){ var o = {}; (list || []).forEach(function(x){ o[x.id] = J(x); }); return o; }
+  return { users:m(s.users), entries:m(s.entries), requests:m(s.requests), settings:J(s.settings) };
+}
+function cloneState(){
+  return JSON.parse(J({ users:state.users, entries:state.entries, requests:state.requests, settings:state.settings }));
+}
+function blankState(){
+  state.users = []; state.entries = []; state.requests = []; state.settings = { signup:true };
+  base = snapshot(state);
+}
+function replaceState(res){
+  state.users = res.users || []; state.entries = res.entries || []; state.requests = res.requests || [];
+  state.settings = res.settings || { signup:true };
+  base = snapshot(state);
+}
+
+function api(method, path, body){
+  var opts = { method:method, headers:{}, cache:"no-store" };
+  if(auth) opts.headers.Authorization = "Bearer " + auth.token;
+  if(body !== undefined){ opts.headers["Content-Type"] = "application/json"; opts.body = J(body); }
+  return fetch(API + path, opts).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(data){
+      if(!r.ok){
+        var e = new Error(data.error || "The server said no (" + r.status + ").");
+        e.status = r.status; throw e;
+      }
+      return data;
+    });
+  }, function(){
+    var e = new Error("Can't reach the server. Check your connection."); e.status = 0; throw e;
+  });
+}
+
+// What changed on this device since the server last confirmed the data?
+function makePatch(){
+  var p = {}, any = false;
+  ["users","entries","requests"].forEach(function(c){
+    var b = base[c], put = [], del = [], seen = {};
+    state[c].forEach(function(x){ seen[x.id] = 1; if(b[x.id] !== J(x)) put.push(x); });
+    if(c !== "users") Object.keys(b).forEach(function(id){
+      if(!seen[id]){ var o = JSON.parse(b[id]); del.push({ id:id, userId:o.userId }); }
+    });
+    if(put.length || del.length){ p[c] = { put:put, del:del }; any = true; }
+  });
+  if(J(state.settings) !== base.settings){ p.settings = state.settings; any = true; }
+  return any ? p : null;
+}
+
+// Fold the server's copy into local state without losing edits made while the request was in flight.
+function mergeServer(res, sent){
+  var before = J([state.users, state.entries, state.requests, state.settings]);
+  ["users","entries","requests"].forEach(function(c){
+    var local = idMap(state[c]), was = idMap(sent[c]), out = [], have = {};
+    (res[c] || []).forEach(function(srv){
+      have[srv.id] = 1;
+      var loc = local[srv.id], snt = was[srv.id];
+      if(loc) out.push(J(loc) !== J(snt || null) ? loc : srv);
+      else if(!snt) out.push(srv);
+    });
+    state[c].forEach(function(loc){ if(!have[loc.id] && !was[loc.id]) out.push(loc); });
+    state[c] = out;
+  });
+  if(J(state.settings) === J(sent.settings)) state.settings = res.settings || state.settings;
+  base = snapshot(res);
+  return before !== J([state.users, state.entries, state.requests, state.settings]);
+}
+
+function onApiError(err){
+  if(err.status === 401){
+    storeAuth(null); blankState(); mode = "signin";
+    toast(err.message || "Please sign in again.");
+    render();
+    return;
+  }
+  if(err.status === 0 || err.status >= 500){
+    failed = true;
+    if(Date.now() - lastOfflineToast > 8000){
+      lastOfflineToast = Date.now();
+      toast("Not saved yet — can't reach the server. Keep this page open; it will retry.");
+    }
+    return;
+  }
+  // The server refused the change: show why, then go back to what the server has.
+  toast(err.message);
+  return api("GET", "/state").then(function(res){ replaceState(res); render(); }, function(){});
+}
+
+function step(){
+  var patch = makePatch();
+  var sent = cloneState();
+  var req = patch ? api("POST", "/sync", patch) : api("GET", "/state");
+  return req.then(function(res){
+    failed = false;
+    if(mergeServer(res, sent)) render();
+  }, onApiError);
+}
+function syncNow(){
+  if(!auth) return Promise.resolve();
+  if(runP){ again = true; return runP; }
+  runP = step().then(function(){
+    runP = null;
+    if(again){ again = false; return syncNow(); }
+  });
+  return runP;
+}
+function save(){ failed = false; syncNow(); }
+
+setInterval(function(){ if(auth && !document.hidden) syncNow(); }, 30000);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden && auth) syncNow(); });
+window.addEventListener("online", function(){ if(auth) syncNow(); });
+window.addEventListener("beforeunload", function(ev){
+  if(auth && makePatch()){ ev.preventDefault(); ev.returnValue = ""; }
+});
+
+/* One-time move of this browser's old data to the server (only when the server is still empty). */
+function legacyData(){
+  try{
+    var raw = localStorage.getItem(LEGACY_KEY);
+    if(!raw) return null;
+    var s = JSON.parse(raw);
+    if(!s || !Array.isArray(s.users)) return null;
+    if(!s.users.some(function(u){ return u.role === "admin" && u.active !== false; })) return null;
+    (s.entries || []).forEach(function(e){
+      e.pauses = e.pauses || (e.breaks || []).map(function(b){ return { type:"break1", start:b.start, end:b.end }; });
+      delete e.breaks;
+    });
+    return s;
+  }catch(e){ return null; }
+}
+function tryMigrate(){
+  var old = legacyData();
+  if(!old) return Promise.resolve();
+  return api("POST", "/migrate", {
+    users:old.users, entries:old.entries || [], requests:old.requests || [],
+    settings:old.settings || { signup:true }, sessionUserId:old.session || null
+  }).then(function(res){
+    try{ localStorage.setItem(LEGACY_KEY + ".migrated", localStorage.getItem(LEGACY_KEY)); localStorage.removeItem(LEGACY_KEY); }catch(e){}
+    meta.needsSetup = false;
+    if(res.token){
+      storeAuth({ token:res.token, userId:res.userId });
+      return pullNow().then(function(){ toast("Your accounts and timesheets are now on the server."); });
+    }
+    toast("Your accounts are now on the server. Sign in with your usual passcode.");
+  }, function(err){
+    if(err.status === 409) meta.needsSetup = false;
+  });
+}
+function pullNow(){
+  return api("GET", "/state").then(function(res){ replaceState(res); });
+}
+
+function describeFailure(err){
+  if(err && err.status === 404) return "The backend isn't installed on this site yet (/api/status was not found). Deploy the netlify/functions folder together with the page.";
+  if(err && err.status >= 500) return "The backend is installed but failing (error " + err.status + "). Open /api/health on this site to see the reason.";
+  return (err && err.message) || "Can't reach the server.";
+}
+function boot(){
+  api("GET", "/status").then(function(s){
+    meta.ready = true; meta.offline = false;
+    meta.needsSetup = !!s.needsSetup; meta.signup = s.signup !== false;
+    if(auth) return pullNow().catch(function(err){ if(err.status === 401) onApiError(err); else throw err; });
+    if(meta.needsSetup) return tryMigrate();
+  }).then(function(){ render(); }, function(err){
+    meta.offline = true; meta.reason = describeFailure(err); render();
+    setTimeout(boot, 5000);
+  });
+}
+
+/* ---------------- passcodes ---------------- */
+function randSalt(){
+  var a = new Uint8Array(12);
+  (self.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function(_,i){ a[i]=Math.floor(Math.random()*256); });
+  return Array.prototype.map.call(a, function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+}
+function weakHash(str){
+  var h1 = 0x811c9dc5, h2 = 0x1b873593;
+  for(var i=0;i<str.length;i++){
+    var c = str.charCodeAt(i);
+    h1 = (h1 ^ c) * 16777619 >>> 0;
+    h2 = ((h2 + c) * 2654435761 ^ (h2 >>> 5)) >>> 0;
+  }
+  return ("00000000"+h1.toString(16)).slice(-8) + ("00000000"+h2.toString(16)).slice(-8);
+}
+function hashPin(pin, salt){
+  var msg = salt + "|" + pin;
+  if(self.crypto && crypto.subtle && crypto.subtle.digest && self.isSecureContext){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg)).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+    }).catch(function(){ return "w:" + weakHash(msg); });
+  }
+  return Promise.resolve("w:" + weakHash(msg));
+}
+
+/* ---------------- time helpers — every display is US Eastern ---------------- */
+var TZ = "America/New_York";
+var tzFmt = null;
+try{
+  tzFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour12: false,
+    year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit" });
+  tzFmt.formatToParts(new Date());
+}catch(err){ tzFmt = null; }
+
+function pad(n){ return (n<10?"0":"") + n; }
+function tzParts(d){
+  if(!tzFmt){
+    return { year:String(d.getFullYear()), month:pad(d.getMonth()+1), day:pad(d.getDate()),
+             hour:pad(d.getHours()), minute:pad(d.getMinutes()), second:pad(d.getSeconds()) };
+  }
+  var o = {};
+  tzFmt.formatToParts(d).forEach(function(p){ o[p.type] = p.value; });
+  if(o.hour === "24") o.hour = "00";
+  return o;
+}
+function dayKey(d){ var p = tzParts(d); return p.year + "-" + p.month + "-" + p.day; }
+function minsOfDay(d){ var p = tzParts(d); return (+p.hour)*60 + (+p.minute); }
+function fmtClock(d){ var p = tzParts(d); var h = +p.hour; var ap = h<12?"AM":"PM"; h = h%12 || 12; return h+":"+p.minute+" "+ap; }
+function fmtHM(mins){ var h = Math.floor(mins/60), m = mins%60; var ap = h<12?"AM":"PM"; h = h%12 || 12; return h+":"+pad(m)+" "+ap; }
+function hm24(mins){ return pad(Math.floor(mins/60)) + ":" + pad(mins%60); }
+function fmtLongDate(d){
+  try{
+    return new Intl.DateTimeFormat(undefined,{ timeZone:TZ, weekday:"long", month:"long", day:"numeric", year:"numeric" }).format(d)
+      + " · Eastern time";
+  }catch(e){ return d.toDateString(); }
+}
+function keyToDate(key){ var a = key.split("-"); return new Date(+a[0], +a[1]-1, +a[2]); }
+function localKey(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+function fmtShortDate(key){
+  return keyToDate(key).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+}
+function fmtDur(ms){
+  if(!ms || ms < 0) ms = 0;
+  var mins = Math.floor(ms/60000);
+  return Math.floor(mins/60) + ":" + pad(mins%60);
+}
+function decHours(ms){ return Math.round((ms/3600000)*100)/100; }
+function weekKeys(key){
+  var d = keyToDate(key);
+  d.setDate(d.getDate() - ((d.getDay()+6) % 7));
+  var start = localKey(d);
+  d.setDate(d.getDate() + 6);
+  return [start, localKey(d)];
+}
+
+/* ---------------- schedules ---------------- */
+var DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var DAY_COLS = { sun:0, sunday:0, mon:1, monday:1, tue:2, tues:2, tuesday:2, wed:3, weds:3, wednesday:3,
+                 thu:4, thur:4, thurs:4, thursday:4, fri:5, friday:5, sat:6, saturday:6 };
+function parseTime(t){
+  t = String(t||"").trim().toLowerCase().replace(/\s+/g, " ");
+  var m = t.match(/^(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?$/);
+  if(!m) return null;
+  var h = +m[1], mi = m[2] ? +m[2] : 0;
+  if(m[3]){ if(h === 12) h = 0; if(m[3] === "pm") h += 12; }
+  if(h > 23 || mi > 59) return null;
+  return h*60 + mi;
+}
+function parseRange(txt){
+  txt = String(txt||"").trim();
+  if(!txt || /^(off|rest(\s*day)?|rd|day\s*off|none|n\/a|-|—)$/i.test(txt)) return null;
+  var bits = txt.split(/\s*(?:-|–|—|\bto\b)\s*/i).filter(function(s){ return s.trim() !== ""; });
+  if(bits.length !== 2) return undefined;
+  var a = parseTime(bits[0]), b = parseTime(bits[1]);
+  if(a === null || b === null) return undefined;
+  return { start:a, end:b };
+}
+/* One spreadsheet cell -> { kind: blank | off | flex | range | bad }.
+   "Executive"/"Flexible" = no fixed hours. Two shifts in one cell (split shift) become one
+   window from the first start to the last end, because the clock stores one window per day. */
+function parseDayCell(raw){
+  var txt = String(raw == null ? "" : raw).trim();
+  if(!txt) return { kind:"blank" };
+  if(/^(executive|exec|flexible|flex|open|anytime)$/i.test(txt)) return { kind:"flex" };
+  var parts = txt.split(/\s*[\n\r;&|+]+\s*/).filter(function(x){ return x.trim() !== ""; });
+  if(parts.length <= 1){
+    var one = parseRange(parts[0] || txt);
+    if(one === undefined) return { kind:"bad" };
+    return one === null ? { kind:"off" } : { kind:"range", range:one };
+  }
+  var rs = parts.map(parseRange);
+  if(rs.some(function(r){ return !r; })) return { kind:"bad" };
+  rs = rs.slice().sort(function(a,b){ return a.start - b.start; });
+  // a split shift keeps both windows instead of being flattened
+  return { kind:"range", range:{ start:rs[0].start, end:rs[rs.length-1].end, windows:rs }, split:rs };
+}
+function schedOf(u, key){
+  if(!u || !u.sched) return null;
+  return u.sched[keyToDate(key).getDay()] || null;
+}
+/* A day can be: null (rest day), {flex:true} (no fixed hours), one window
+   {start,end}, or a split shift {start,end,windows:[{start,end},...]}.
+   start/end always span the first start to the last end, so older records
+   and exports keep working exactly as before. */
+function schedWindows(r){
+  if(!r || r.flex) return [];
+  if(r.windows && r.windows.length) return r.windows;
+  if(r.split && r.split.length) return r.split;
+  return [{ start:r.start, end:r.end }];
+}
+function dayTag(r){
+  if(!r) return "off";
+  if(r.flex) return "flexible hours";
+  return schedWindows(r).map(function(w){ return fmtHM(w.start) + "–" + fmtHM(w.end); }).join("  +  ");
+}
+function fmtRange(r){
+  if(!r) return "Rest day";
+  if(r.flex) return "flexible hours — clock in whenever";
+  var txt = schedWindows(r).map(function(w){ return fmtHM(w.start) + " – " + fmtHM(w.end); }).join("  +  ");
+  return txt + (r.end <= r.start ? " (next day)" : "");
+}
+function schedSummary(u){
+  if(!u.sched) return '<span class="muted">not set</span>';
+  var groups = {}, order = [];
+  [1,2,3,4,5,6,0].forEach(function(d){
+    var r = u.sched[d];
+    if(!r) return;
+    var tag = dayTag(r);
+    if(!groups[tag]){ groups[tag] = []; order.push(tag); }
+    groups[tag].push(DAY_NAMES[d]);
+  });
+  if(!order.length) return '<span class="muted">rest days only</span>';
+  return order.map(function(tag){ return esc(groups[tag].join(" ") + "  " + tag); }).join("<br>");
+}
+function lateMins(e, u){
+  var r = schedOf(u, e.date);
+  if(!r || r.flex) return null;   // a flexible day can't be late
+  return minsOfDay(new Date(e.inAt)) - r.start;
+}
+function etToUtc(dateKey, mins){
+  var p = dateKey.split("-");
+  var h = Math.floor(mins/60), mi = mins%60;
+  var guess = new Date(Date.UTC(+p[0], +p[1]-1, +p[2], h, mi, 0));
+  var got = tzParts(guess);
+  var gotUtc = Date.UTC(+got.year, +got.month-1, +got.day, +got.hour, +got.minute, +got.second);
+  return new Date(guess.getTime() + (guess.getTime() - gotUtc));
+}
+function applyEditedTimes(entry, dateKey, inStr, outStr){
+  var inM = parseTime(inStr);
+  if(inM === null) return "Enter the clock-in time like 9:05 AM.";
+  var newIn = etToUtc(dateKey, inM);
+  var newOutIso = null;
+  outStr = String(outStr||"").trim();
+  if(outStr && !/^still open$/i.test(outStr)){
+    var outM = parseTime(outStr);
+    if(outM === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
+    var outKey = dateKey;
+    if(outM <= inM){ var nd = keyToDate(dateKey); nd.setDate(nd.getDate()+1); outKey = localKey(nd); }
+    var newOut = etToUtc(outKey, outM);
+    if(newOut.getTime() <= newIn.getTime()) return "Clock-out has to be after clock-in.";
+    newOutIso = newOut.toISOString();
+  }
+  entry.inAt = newIn.toISOString();
+  entry.outAt = newOutIso;
+  return null;
+}
+/* ---------------- entries ---------------- */
+var PAUSES = [
+  { key:"break1", label:"Break 1", cls:"btn-brk", chip:"chip-brk" },
+  { key:"break2", label:"Break 2", cls:"btn-brk", chip:"chip-brk" },
+  { key:"lunch",  label:"Lunch",   cls:"btn-lunch", chip:"chip-lunch" }
+];
+function pauseDef(key){
+  return PAUSES.filter(function(p){ return p.key === key; })[0] || { key:key, label:key, cls:"btn-brk", chip:"chip-brk" };
+}
+function openEntry(uid){
+  for(var i=state.entries.length-1;i>=0;i--){
+    var e = state.entries[i];
+    if(e.userId === uid && !e.outAt) return e;
+  }
+  return null;
+}
+function openPause(e){
+  if(!e) return null;
+  for(var i=0;i<e.pauses.length;i++){ if(!e.pauses[i].end) return e.pauses[i]; }
+  return null;
+}
+function usedPause(e, key){
+  return !!e && e.pauses.some(function(p){ return p.type === key && p.end; });
+}
+function pauseMs(e, key, now){
+  var t = 0;
+  e.pauses.forEach(function(p){
+    if(key && p.type !== key) return;
+    var end = p.end ? new Date(p.end).getTime() : (now || Date.now());
+    t += Math.max(0, end - new Date(p.start).getTime());
+  });
+  return t;
+}
+function breakMs(e, now){ return pauseMs(e, null, now); }
+function workedMs(e, now){
+  var start = new Date(e.inAt).getTime();
+  var end = e.outAt ? new Date(e.outAt).getTime() : (now || Date.now());
+  return Math.max(0, end - start - breakMs(e, now));
+}
+function entriesFor(uid){
+  return state.entries.filter(function(e){ return e.userId === uid; })
+    .sort(function(a,b){ return new Date(a.inAt) - new Date(b.inAt); });
+}
+
+/* ---------------- dom ---------------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function show(el, on){ el.classList.toggle("hidden", !on); }
+var toastTimer = null;
+function toast(msg){
+  var old = document.querySelector(".toast");
+  if(old) old.remove();
+  var t = document.createElement("div");
+  t.className = "toast"; t.setAttribute("role","status"); t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.remove(); }, 3200);
+}
+
+/* ---------------- auth screen ---------------- */
+var mode = "signin";
+function currentUser(){
+  if(!state.session) return null;
+  var u = state.users.filter(function(x){ return x.id === state.session; })[0];
+  return (u && u.active !== false) ? u : null;
+}
+function paintAuth(){
+  var first = meta.ready && meta.needsSetup;
+  if(first) mode = "setup";
+  else if(mode === "setup") mode = "signin";
+
+  var signup = mode === "signup" || mode === "setup";
+  $("authTitle").textContent = !meta.ready ? "Connecting…"
+                        : mode === "setup" ? "Set up the first account"
+                        : mode === "signup" ? "Create your account" : "Sign in to clock";
+  $("authSub").textContent = !meta.ready ? "Reaching the server."
+                        : mode === "setup" ? "This one runs the place: it can see everyone's hours and add people."
+                        : mode === "signup" ? "Pick a username nobody else here is using."
+                        : "Every person keeps their own record.";
+  show($("fName"), signup);
+  show($("fPin2"), signup);
+  $("authGo").textContent = mode === "setup" ? "Create admin account" : signup ? "Create account" : "Sign in";
+  $("authGo").disabled = !meta.ready;
+  $("authErr").textContent = meta.offline ? (meta.reason || "Can't reach the server.") + " Retrying…" : "";
+  $("authForm").reset();
+
+  var sw = $("authSwitch");
+  sw.innerHTML = "";
+  if(mode === "setup" || !meta.ready) return;
+  var btn = document.createElement("button");
+  btn.type = "button"; btn.className = "linkish";
+  if(mode === "signin"){
+    if(!meta.signup){ sw.textContent = "Need an account? Ask your admin to add you."; return; }
+    sw.append("New here? ");
+    btn.textContent = "Create an account";
+    btn.onclick = function(){ mode = "signup"; paintAuth(); };
+  } else {
+    sw.append("Already have one? ");
+    btn.textContent = "Sign in";
+    btn.onclick = function(){ mode = "signin"; paintAuth(); };
+  }
+  sw.appendChild(btn);
+}
+
+function validUsername(u){ return /^[a-z0-9._-]{3,20}$/.test(u); }
+
+var authBusy = false;
+$("authForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  if(authBusy || !meta.ready) return;
+  var err = $("authErr");
+  var uname = $("inUser").value.trim().toLowerCase();
+  var pin = $("inPin").value;
+  var signup = mode === "signup" || mode === "setup";
+
+  if(!validUsername(uname)){
+    err.textContent = "Usernames are 3-20 characters: letters, numbers, dot, dash or underscore."; return;
+  }
+  function finish(res, msg){
+    storeAuth({ token:res.token, userId:res.userId });
+    return pullNow().then(function(){ mode = "signin"; render(); if(msg) toast(msg); });
+  }
+  function fail(e){ authBusy = false; $("authGo").disabled = false; err.textContent = e.message; }
+
+  if(signup){
+    var name = $("inName").value.trim();
+    if(name.length < 2){ err.textContent = "Enter the name that should appear on the timesheet."; return; }
+    if(pin.length < 4){ err.textContent = "Use a passcode of at least 4 characters."; return; }
+    if(pin !== $("inPin2").value){ err.textContent = "The two passcodes don't match."; return; }
+    var salt = randSalt();
+    authBusy = true; $("authGo").disabled = true;
+    hashPin(pin, salt).then(function(h){
+      return api("POST", "/signup", { username:uname, name:name, salt:salt, hash:h });
+    }).then(function(res){
+      authBusy = false; $("authGo").disabled = false;
+      meta.needsSetup = false;
+      return finish(res, "Account created. You're signed in.");
+    }).catch(function(e){
+      fail(e);
+      if(e.status === 409 || e.status === 403) api("GET", "/status").then(function(s){
+        meta.needsSetup = !!s.needsSetup; meta.signup = s.signup !== false;
+      }).catch(function(){});
+    });
+    return;
+  }
+
+  authBusy = true; $("authGo").disabled = true;
+  api("GET", "/salt?u=" + encodeURIComponent(uname)).then(function(r){
+    return hashPin(pin, r.salt);
+  }).then(function(h){
+    return api("POST", "/login", { username:uname, hash:h });
+  }).then(function(res){
+    authBusy = false; $("authGo").disabled = false;
+    return finish(res);
+  }).catch(fail);
+});
+
+/* ---------------- punches ---------------- */
+function punchIn(){
+  var u = currentUser(); if(!u) return;
+  if(openEntry(u.id)){ toast("You're already clocked in."); return; }
+  var now = new Date();
+  state.entries.push({
+    id: nextId("e"), userId: u.id, date: dayKey(now),
+    inAt: now.toISOString(), outAt: null, pauses: []
+  });
+  save(); render();
+  var late = lateMins(state.entries[state.entries.length-1], u);
+  if(late === null) toast("Clocked in at " + fmtClock(now));
+  else if(late > 1) toast("Clocked in at " + fmtClock(now) + " — " + late + " min late.");
+  else if(late < -1) toast("Clocked in at " + fmtClock(now) + " — " + Math.abs(late) + " min early.");
+  else toast("Clocked in at " + fmtClock(now) + " — right on time.");
+}
+function setPause(key){
+  var u = currentUser(); if(!u) return;
+  var e = openEntry(u.id);
+  if(!e){ toast("Clock in first."); return; }
+  var now = new Date();
+  var live = openPause(e);
+  var def = pauseDef(key);
+  if(live && live.type === key){
+    live.end = now.toISOString();
+    save(); render();
+    toast(def.label + " ended — back on the clock.");
+    return;
+  }
+  if(live) live.end = now.toISOString();
+  if(usedPause(e, key)){ toast(def.label + " was already taken this shift."); save(); render(); return; }
+  e.pauses.push({ type: key, start: now.toISOString(), end: null });
+  save(); render(); toast(def.label + " started at " + fmtClock(now));
+}
+function punchOut(){
+  var u = currentUser(); if(!u) return;
+  var e = openEntry(u.id);
+  if(!e){ toast("You're not clocked in."); return; }
+  var now = new Date();
+  var live = openPause(e);
+  if(live) live.end = now.toISOString();
+  e.outAt = now.toISOString();
+  save(); render();
+  toast("Clocked out. " + fmtDur(workedMs(e)) + " worked.");
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  var u = currentUser();
+  show($("auth"), !u);
+  show($("app"), !!u);
+  if(!u){ paintAuth(); tick(); return; }
+
+  $("whoName").textContent = u.name;
+  $("whoRole").textContent = "@" + u.username + (u.role === "admin" ? " · admin" : "");
+  show($("tabTeam"), u.role === "admin");
+  show($("btnPin"), u.role === "admin");   // passcodes are changed by an admin
+  document.querySelector('.tab[data-view="sheet"]').textContent = u.role === "admin" ? "Timesheets" : "My timesheet";
+  if(u.role !== "admin" && view === "team") setView("clock");
+
+  show($("fPerson"), u.role === "admin");
+  if(u.role === "admin"){
+    var sel = $("sPerson");
+    var wanted = sel.value || u.id;
+    sel.innerHTML = state.users.map(function(x){
+      return '<option value="' + esc(x.id) + '">' + esc(x.name) + (x.id === u.id ? " (you)" : "") + '</option>';
+    }).join("");
+    sel.value = state.users.some(function(x){ return x.id === wanted; }) ? wanted : u.id;
+  }
+
+  renderClock(u);
+  if(view === "sheet") renderSheet(u);
+  if(view === "team" && u.role === "admin") renderTeam();
+  tick();
+}
+
+function renderClock(u){
+  $("today").textContent = fmtLongDate(new Date());
+  var todayKey = dayKey(new Date());
+  var sched = schedOf(u, todayKey);
+  $("schedLine").textContent = !u.sched ? "No schedule on file"
+    : !sched ? "Rest day — no shift scheduled"
+    : sched.flex ? "Flexible hours today — clock in whenever"
+    : "Scheduled " + fmtRange(sched);
+  var e = openEntry(u.id);
+  var live = openPause(e);
+  var def = live ? pauseDef(live.type) : null;
+  var chip = $("chip");
+  chip.className = "chip " + (!e ? "chip-off" : live ? def.chip : "chip-in");
+  $("chipText").textContent = !e ? "Clocked out"
+    : live ? def.label + " since " + fmtClock(new Date(live.start))
+    : "Working since " + fmtClock(new Date(e.inAt));
+
+  var row = $("statusRow");
+  row.innerHTML = "";
+  function add(label, cls, disabled, fn){
+    var b = document.createElement("button");
+    b.className = "btn " + cls;
+    b.textContent = label;
+    b.disabled = disabled;
+    if(!disabled) b.addEventListener("click", fn);
+    row.appendChild(b);
+  }
+  add("Clock in", "btn-in", !!e, punchIn);
+  PAUSES.forEach(function(p){
+    var isLive = !!live && live.type === p.key;
+    var done = usedPause(e, p.key);
+    var label = isLive ? "End " + p.label.toLowerCase() : done ? p.label + " taken" : p.label;
+    add(label, p.cls + (isLive ? " live" : ""), !e || (done && !isLive), function(){ setPause(p.key); });
+  });
+  add("Clock out", "btn-out", !e, punchOut);
+
+  var list = $("punchList");
+  list.innerHTML = "";
+  var todays = entriesFor(u.id).filter(function(x){ return x.date === dayKey(new Date()); });
+  var rows = [];
+  todays.forEach(function(x){
+    rows.push([x.inAt, "Clocked in", ""]);
+    x.pauses.forEach(function(p){
+      var d = pauseDef(p.type);
+      rows.push([p.start, d.label + " started", ""]);
+      if(p.end) rows.push([p.end, d.label + " ended", fmtDur(new Date(p.end)-new Date(p.start))]);
+    });
+    if(x.outAt) rows.push([x.outAt, "Clocked out", fmtDur(workedMs(x)) + " worked"]);
+  });
+  rows.sort(function(a,c){ return new Date(c[0]) - new Date(a[0]); });
+  rows.forEach(function(r){
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="p-when readout">' + esc(fmtClock(new Date(r[0]))) + '</span>' +
+                   '<span class="p-what">' + esc(r[1]) + '</span>' +
+                   '<span class="p-tag">' + esc(r[2]) + '</span>';
+    list.appendChild(li);
+  });
+  show($("punchEmpty"), rows.length === 0);
+}
+
+function rangeEntries(uid, from, to){
+  return entriesFor(uid).filter(function(e){ return e.date >= from && e.date <= to; });
+}
+function renderSheet(me){
+  var isAdmin = me.role === "admin";
+  var target = isAdmin ? (state.users.filter(function(x){ return x.id === $("sPerson").value; })[0] || me) : me;
+
+  if(!isAdmin){
+    var unseen = state.requests.filter(function(r){ return r.userId === me.id && r.resolvedAt && !r.seen; });
+    if(unseen.length){
+      unseen.forEach(function(r){
+        r.seen = true;
+        toast(r.status === "approved" ? "Your correction for " + fmtShortDate(r.date) + " was approved."
+                                       : "Your correction for " + fmtShortDate(r.date) + " was declined.");
+      });
+      save();
+    }
+  }
+
+  var from = $("sFrom").value, to = $("sTo").value;
+  if(!from || !to) return;
+  var list = rangeEntries(target.id, from, to);
+  var body = $("sheetBody");
+  body.innerHTML = "";
+  var totW = 0, totB = 0, days = {};
+  list.forEach(function(e){
+    var ref = e.outAt ? new Date(e.outAt).getTime() : Date.now();
+    var w = e.outAt ? workedMs(e) : 0;
+    var bm = breakMs(e, ref);
+    if(e.outAt){ totW += w; totB += bm; days[e.date] = 1; }
+    var cells = PAUSES.map(function(p){
+      var ms = pauseMs(e, p.key, ref);
+      return '<td class="num">' + (ms ? esc(fmtDur(ms)) : '<span class="muted">—</span>') + "</td>";
+    }).join("");
+
+    var actionCell;
+    if(isAdmin){
+      actionCell = '<button class="btn btn-quiet" data-edit="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Edit</button>';
+    } else {
+      var pending = pendingReqFor(e.id);
+      var last = lastReqFor(e.id);
+      if(pending) actionCell = '<span class="reqtag pending">Review pending</span>';
+      else if(last && last.status === "declined") actionCell = '<span class="reqtag declined">Declined</span> <button class="btn btn-quiet" data-req="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Request again</button>';
+      else actionCell = '<button class="btn btn-quiet" data-req="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Request edit</button>';
+    }
+
+    var tr = document.createElement("tr");
+    var lastEdit = auditForEntry(e.id)[0];
+    var editedTag = lastEdit && lastEdit.by
+      ? '<span class="edited-by">✎ edited by @' + esc(lastEdit.by) + '</span>' : "";
+    tr.innerHTML = "<td>" + esc(fmtShortDate(e.date)) + editedTag + "</td>" +
+      "<td>" + esc(fmtClock(new Date(e.inAt))) + "</td>" +
+      "<td>" + (e.outAt ? esc(fmtClock(new Date(e.outAt))) : '<span class="muted">still open</span>') + "</td>" +
+      cells +
+      '<td class="num">' + (e.outAt ? esc(fmtDur(w)) : '<span class="muted">—</span>') + "</td>" +
+      '<td style="text-align:right;white-space:nowrap">' + actionCell + "</td>";
+    body.appendChild(tr);
+  });
+  show($("sheetEmpty"), list.length === 0);
+  show($("sheetTable"), list.length > 0);
+  $("tDays").textContent = Object.keys(days).length;
+  $("tBreak").textContent = fmtDur(totB);
+  $("tWorked").textContent = fmtDur(totW);
+
+  /* change history sits at the bottom of the sheet and names the editor */
+  var audit = auditInRange(target.id, from, to);
+  var aList = $("auditList");
+  aList.innerHTML = "";
+  audit.forEach(function(r){
+    var h = auditHtml(r);
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="p-when readout">' + esc(r.date ? fmtShortDate(r.date) : "—") + '</span>' +
+      '<span class="p-what">' + esc(h.what + (r.person ? " · " + r.person : "")) + esc(h.detail) + '</span>' +
+      '<span class="a-by">by ' + esc(h.who) + ' · ' + esc(fmtShortDate(dayKey(new Date(r.at)))) + " " + esc(fmtClock(new Date(r.at))) + '</span>';
+    aList.appendChild(li);
+  });
+  if(audit.length){
+    var top = audit[0];
+    var ht = auditHtml(top);
+    $("auditSign").innerHTML = "Last change on this sheet by <strong>" + esc(ht.who) + "</strong> on " +
+      esc(fmtShortDate(top.date || dayKey(new Date(top.at)))) + " at " + esc(fmtClock(new Date(top.at))) +
+      esc(ht.detail) + ".";
+  } else {
+    $("auditSign").textContent = "";
+  }
+  show($("auditBlock"), audit.length > 0);
+}
+
+function renderTeam(){
+  var pending = state.requests.filter(function(r){ return r.status === "pending"; })
+    .sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+  var reqList = $("reqList"); reqList.innerHTML = "";
+  pending.forEach(function(r){
+    var u = userOf(r.userId);
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="p-when readout">' + esc(fmtShortDate(r.date)) + '</span>' +
+      '<span class="p-what">' + esc(u.name) + ' wants in ' + esc(r.reqIn) + (r.reqOut ? ", out " + esc(r.reqOut) : ", still open") + '</span>' +
+      '<button class="btn btn-quiet" data-review="' + esc(r.id) + '" style="padding:4px 10px;font-size:.85rem">Review</button>';
+    reqList.appendChild(li);
+  });
+  show($("reqEmpty"), pending.length === 0);
+  $("reqBadge").textContent = pending.length ? "· " + pending.length + " waiting" : "";
+
+  var now = Date.now();
+  var on = $("onNow"); on.innerHTML = "";
+  var count = 0;
+  state.users.forEach(function(u){
+    var e = openEntry(u.id);
+    if(!e) return;
+    count++;
+    var live = openPause(e);
+    var li = document.createElement("li");
+    li.textContent = u.name + " · " + (live ? "on " + pauseDef(live.type).label.toLowerCase() : fmtDur(workedMs(e, now)));
+    if(live) li.style.cssText = "background:#2A1F0B;border-color:#5A4220;color:var(--amber)";
+    on.appendChild(li);
+  });
+  show($("onNowEmpty"), count === 0);
+
+  var body = $("teamBody"); body.innerHTML = "";
+  state.users.forEach(function(u){
+    var e = openEntry(u.id);
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + esc(u.name) + "</td><td>@" + esc(u.username) + "</td>" +
+      "<td>" + (u.role === "admin" ? "Admin" : "Staff") + "</td>" +
+      '<td style="white-space:normal;line-height:1.35;font-size:.86rem">' + schedSummary(u) + "</td>" +
+      "<td>" + (!u.active ? '<span class="muted">switched off</span>' : e ? '<span style="color:var(--signal)">on the clock</span>' : '<span class="muted">off</span>') + "</td>" +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="btn btn-quiet" data-sched="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">Schedule</button> ' +
+        '<button class="btn btn-quiet" data-reset="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">Reset passcode</button> ' +
+        '<button class="btn ' + (u.active ? "btn-danger" : "btn-quiet") + '" data-toggle="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">' +
+        (u.active ? "Switch off" : "Switch on") + "</button></td>";
+    body.appendChild(tr);
+  });
+  $("tSignup").value = state.settings.signup ? "on" : "off";
+}
+
+/* ---------------- generic action dialog ---------------- */
+var actDlg = $("actDlg");
+function openAct(title, bodyHtml, buttons){
+  $("actTitle").textContent = title;
+  $("actBody").innerHTML = bodyHtml;
+  $("actErr").textContent = "";
+  var wrap = $("actButtons");
+  wrap.innerHTML = "";
+  buttons.forEach(function(b){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn " + (b.cls || "btn-quiet");
+    btn.textContent = b.label;
+    btn.addEventListener("click", function(){
+      if(b.close){ actDlg.close(); return; }
+      if(b.confirm && btn.dataset.armed !== "1"){
+        btn.dataset.armed = "1";
+        var orig = b.label;
+        btn.textContent = b.confirmLabel || "Click again to confirm";
+        setTimeout(function(){ if(btn.dataset.armed === "1"){ btn.dataset.armed = "0"; btn.textContent = orig; } }, 2500);
+        return;
+      }
+      btn.disabled = true;
+      Promise.resolve(b.run($("actBody"))).then(function(msg){
+        btn.disabled = false;
+        if(msg){ $("actErr").textContent = msg; return; }
+        actDlg.close();
+      });
+    });
+    wrap.appendChild(btn);
+  });
+  actDlg.showModal();
+  var first = $("actBody").querySelector("input,textarea"); if(first) first.focus();
+}
+
+/* ---------------- edit log — every change keeps the editor's username ---------------- */
+function allAudit(){
+  var out = [], seen = {};
+  function add(r){
+    if(!r || !r.id || seen[r.id]) return;
+    seen[r.id] = 1; out.push(r);
+  }
+  ((state.settings && state.settings.audit) || []).forEach(add);
+  state.entries.forEach(function(e){ (e.audit || []).forEach(add); });
+  return out.sort(function(a,b){ return new Date(b.at) - new Date(a.at); });
+}
+function auditInRange(userId, from, to){
+  return allAudit().filter(function(r){
+    if(userId && r.userId !== userId) return false;
+    if(from && r.date && r.date < from) return false;
+    if(to && r.date && r.date > to) return false;
+    return true;
+  });
+}
+function auditForEntry(entryId){
+  return allAudit().filter(function(r){ return r.entryId === entryId; });
+}
+function lastEditorOf(entryId){
+  var rec = auditForEntry(entryId)[0];
+  return rec && rec.by ? "@" + rec.by : "";
+}
+function describeShift(e){
+  if(!e) return "";
+  return fmtClock(new Date(e.inAt)) + " – " + (e.outAt ? fmtClock(new Date(e.outAt)) : "still open");
+}
+/* Written on the shift itself and in the shared log, so the name survives
+   even if one of the two is not stored by the server. */
+function logEdit(entry, action, changes){
+  var me = currentUser();
+  var rec = {
+    id: nextId("a"), at: new Date().toISOString(), action: action,
+    by: me ? me.username : "", byName: me ? me.name : "",
+    entryId: entry ? entry.id : null,
+    userId: entry ? entry.userId : null,
+    date: entry ? entry.date : null,
+    person: entry ? userOf(entry.userId).name : "",
+    changes: changes || []
+  };
+  if(entry){
+    entry.audit = (entry.audit || []).concat([rec]);
+    if(entry.audit.length > 20) entry.audit = entry.audit.slice(-20);
+  }
+  state.settings = state.settings || { signup:true };
+  state.settings.audit = (state.settings.audit || []).concat([rec]);
+  if(state.settings.audit.length > 300) state.settings.audit = state.settings.audit.slice(-300);
+  return rec;
+}
+function auditHtml(r){
+  var who = r.by ? "@" + r.by : "an admin";
+  var what = r.action === "delete" ? "Deleted a shift"
+           : r.action === "approve" ? "Approved a correction"
+           : "Edited a shift";
+  var detail = (r.changes || []).length ? " — " + r.changes.join("; ") : "";
+  return { who:who, what:what, detail:detail };
+}
+
+/* ---------------- shift edit requests ---------------- */
+function findEntry(id){ return state.entries.filter(function(e){ return e.id === id; })[0] || null; }
+function pendingReqFor(entryId){
+  return state.requests.filter(function(r){ return r.entryId === entryId && r.status === "pending"; })[0] || null;
+}
+function lastReqFor(entryId){
+  var list = state.requests.filter(function(r){ return r.entryId === entryId; });
+  return list.length ? list[list.length-1] : null;
+}
+function submitRequestDialog(entry){
+  var u = currentUser();
+  var curOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "";
+  openAct("Request a correction",
+    '<p class="note" style="margin:0 0 14px">On file for ' + esc(fmtShortDate(entry.date)) + ': clocked in ' +
+      esc(fmtClock(new Date(entry.inAt))) + (entry.outAt ? ", out " + esc(curOut) : ", still open") +
+      '. An admin reviews this before anything changes.</p>' +
+    '<label class="field"><span>Correct clock-in time</span><input id="reqIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
+    '<label class="field"><span>Correct clock-out time</span><input id="reqOut" value="' + esc(curOut) + '" placeholder="leave blank if still open"></label>' +
+    '<label class="field"><span>What happened?</span><textarea id="reqNote" rows="3" placeholder="e.g. forgot to clock out at lunch"></textarea></label>',
+    [
+      { label:"Cancel", cls:"btn-quiet", close:true },
+      { label:"Submit request", cls:"btn-in", run:function(body){
+          if(pendingReqFor(entry.id)) return "There's already a pending request for this shift.";
+          var inStr = body.querySelector("#reqIn").value.trim();
+          var outStr = body.querySelector("#reqOut").value.trim();
+          var note = body.querySelector("#reqNote").value.trim();
+          if(parseTime(inStr) === null) return "Enter the clock-in time like 9:05 AM.";
+          if(outStr && parseTime(outStr) === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
+          if(note.length < 3) return "Add a short note about what's wrong.";
+          state.requests.push({
+            id: nextId("r"), userId: u.id, entryId: entry.id, date: entry.date,
+            curIn: entry.inAt, curOut: entry.outAt,
+            reqIn: inStr, reqOut: outStr, note: note,
+            status: "pending", createdAt: new Date().toISOString(),
+            resolvedAt: null, resolverNote: "", seen: true
+          });
+          save(); render();
+          toast("Request submitted for review.");
+          return null;
+        } }
+    ]);
+}
+function reviewRequestDialog(reqId){
+  var r = state.requests.filter(function(x){ return x.id === reqId; })[0];
+  if(!r) return;
+  var u = userOf(r.userId);
+  var entry = findEntry(r.entryId);
+  openAct("Review request — " + u.name,
+    '<p class="note" style="margin:0 0 6px">' + esc(fmtShortDate(r.date)) + '</p>' +
+    '<p class="note" style="margin:0 0 14px">On file: in ' + esc(fmtClock(new Date(r.curIn))) +
+      (r.curOut ? ", out " + esc(fmtClock(new Date(r.curOut))) : ", still open") + '.<br>' +
+      esc(u.name) + ' says: “' + esc(r.note) + '”</p>' +
+    (entry
+      ? '<label class="field"><span>Approve with clock-in</span><input id="revIn" value="' + esc(r.reqIn) + '"></label>' +
+        '<label class="field"><span>Approve with clock-out</span><input id="revOut" value="' + esc(r.reqOut) + '" placeholder="leave blank = still open"></label>'
+      : '<p class="note" style="margin:0">That shift no longer exists — only Decline is available.</p>'),
+    [
+      { label:"Decline", cls:"btn-danger", run:function(){
+          r.status = "declined"; r.resolvedAt = new Date().toISOString(); r.seen = false;
+          save(); render(); toast("Request declined.");
+          return null;
+        } }
+    ].concat(entry ? [{ label:"Approve", cls:"btn-in", run:function(body){
+          var inStr = body.querySelector("#revIn").value.trim();
+          var outStr = body.querySelector("#revOut").value.trim();
+          var beforeIn = fmtClock(new Date(entry.inAt));
+          var beforeOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          var err = applyEditedTimes(entry, r.date, inStr, outStr);
+          if(err) return err;
+          var changes = [];
+          var afterIn = fmtClock(new Date(entry.inAt));
+          var afterOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
+          if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
+          changes.unshift("approved @" + u.username + "'s request");
+          logEdit(entry, "approve", changes);
+          r.status = "approved"; r.resolvedAt = new Date().toISOString(); r.seen = false;
+          save(); render(); toast("Request approved and applied — logged as @" + currentUser().username + ".");
+          return null;
+        } }] : []));
+}
+function editShiftDialog(entry){
+  var u = userOf(entry.userId);
+  var me = currentUser();
+  openAct("Edit shift — " + u.name,
+    '<p class="note" style="margin:0 0 14px">' + esc(fmtShortDate(entry.date)) + ' · on file now: ' + esc(describeShift(entry)) + '</p>' +
+    '<label class="field"><span>Clock in</span><input id="edIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
+    '<label class="field"><span>Clock out</span><input id="edOut" value="' + (entry.outAt ? esc(fmtClock(new Date(entry.outAt))) : "") + '" placeholder="leave blank = still open"></label>' +
+    '<p class="note" style="margin:2px 0 0">Saved straight onto this timesheet and written into the change history at the bottom of the sheet as <strong style="color:var(--amber)">@' +
+      esc(me ? me.username : "") + '</strong>.</p>',
+    [
+      { label:"Delete shift", cls:"btn-danger", confirm:true, confirmLabel:"Click again to delete", run:function(){
+          logEdit(entry, "delete", ["shift " + fmtShortDate(entry.date) + " (" + describeShift(entry) + ")"]);
+          state.entries = state.entries.filter(function(x){ return x.id !== entry.id; });
+          state.requests = state.requests.filter(function(x){ return x.entryId !== entry.id; });
+          save(); render();
+          toast("Shift deleted — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
+          return null;
+        } },
+      { label:"Cancel", cls:"btn-quiet", close:true },
+      { label:"Save changes", cls:"btn-in", run:function(body){
+          var beforeIn = fmtClock(new Date(entry.inAt));
+          var beforeOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          var err = applyEditedTimes(entry, entry.date, body.querySelector("#edIn").value.trim(), body.querySelector("#edOut").value.trim());
+          if(err) return err;
+          var changes = [];
+          var afterIn = fmtClock(new Date(entry.inAt));
+          var afterOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
+          if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
+          if(!changes.length){ toast("Nothing changed on this shift."); return null; }
+          logEdit(entry, "edit", changes);
+          save(); render();
+          toast("Shift updated — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
+          return null;
+        } }
+    ]);
+}
+
+/* ---------------- views ---------------- */
+var view = "clock";
+function setView(v){
+  view = v;
+  show($("vClock"), v === "clock");
+  show($("vSheet"), v === "sheet");
+  show($("vTeam"), v === "team");
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.setAttribute("aria-selected", String(t.dataset.view === v));
+  });
+  if(v === "sheet" && !$("sFrom").value) thisWeek();
+  render();
+}
+Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+  t.addEventListener("click", function(){ setView(t.dataset.view); });
+});
+
+function thisWeek(){
+  var w = weekKeys(dayKey(new Date()));
+  $("sFrom").value = w[0];
+  $("sTo").value = w[1];
+}
+
+/* ---------------- ticking clock ---------------- */
+function tick(){
+  var now = new Date();
+  var p = tzParts(now);
+  var h24 = +p.hour;
+  var ap = h24 < 12 ? "AM" : "PM";
+  var hh = (h24 % 12 || 12) + ":" + p.minute;
+  var ss = ":" + p.second + " " + ap;
+  $("authHH").textContent = hh;
+  $("authSS").textContent = ss;
+  $("authDate").textContent = fmtLongDate(now);
+  $("hh").textContent = hh;
+  $("ss").textContent = ss;
+
+  var u = currentUser();
+  if(!u) return;
+  var e = openEntry(u.id);
+  var el = $("elapsed"), note = $("elapsedNote");
+  if(e){
+    var live = openPause(e);
+    el.firstChild.nodeValue = fmtDur(workedMs(e, now.getTime()));
+    note.textContent = live ? pauseDef(live.type).label + " running " + fmtDur(now - new Date(live.start))
+                            : "Worked so far, breaks taken out";
+  } else {
+    var done = entriesFor(u.id).filter(function(x){ return x.date === dayKey(now) && x.outAt; });
+    var total = done.reduce(function(s,x){ return s + workedMs(x); }, 0);
+    el.firstChild.nodeValue = fmtDur(total);
+    note.textContent = done.length ? "Recorded today across " + done.length + (done.length>1?" shifts":" shift") : "No open shift today";
+  }
+  if(view === "team") renderTeam();
+}
+setInterval(tick, 1000);
+
+/* ---------------- csv ---------------- */
+function csvCell(v){
+  v = String(v == null ? "" : v).replace(/→/g, "->").replace(/←/g, "<-");
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+var saver = null;
+if(window.claude && typeof claude.use === "function"){
+  try{ claude.use("downloads").then(function(d){ saver = d; }, function(){}); }catch(e){}
+}
+function download(name, text){
+  if(saver){
+    saver.save({ filename: name, data: text }).then(function(){
+      toast("Saved " + name);
+    }, function(err){
+      toast(err && err.code === "declined" ? "Export cancelled." : "That file couldn't be saved here.");
+    });
+    return;
+  }
+  var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function userOf(id){
+  return state.users.filter(function(x){ return x.id === id; })[0] || { name:"(removed account)", username:"" };
+}
+function toCsv(entries){
+  var head = ["Name","Username","Date","Scheduled in","Scheduled out","Clock in","Clock out","Late (min)"];
+  PAUSES.forEach(function(p){ head.push(p.label + " (min)"); });
+  head.push("Total break (min)","Worked (hours)","Status","Time zone","Edited by");
+  var rows = [head];
+  entries.forEach(function(e){
+    var u = userOf(e.userId);
+    var ref = e.outAt ? new Date(e.outAt).getTime() : Date.now();
+    var sc = schedOf(u, e.date);
+    var fixed = !!sc && !sc.flex;
+    var late = lateMins(e, u);
+    var r = [ u.name, u.username, e.date,
+      fixed ? fmtHM(sc.start) : "", fixed ? fmtHM(sc.end) : "",
+      fmtClock(new Date(e.inAt)),
+      e.outAt ? fmtClock(new Date(e.outAt)) : "",
+      late === null ? "" : late ];
+    PAUSES.forEach(function(p){ r.push(Math.round(pauseMs(e, p.key, ref)/60000)); });
+    r.push(Math.round(breakMs(e, ref)/60000));
+    r.push(e.outAt ? decHours(workedMs(e)) : "");
+    r.push(e.outAt ? "closed" : "still open");
+    r.push("US Eastern");
+    r.push(lastEditorOf(e.id));
+    rows.push(r);
+  });
+  return rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n");
+}
+function toLogCsv(entries, auditRecs){
+  var events = [];
+  entries.forEach(function(e){
+    var u = userOf(e.userId);
+    function push(iso, status){
+      var d = new Date(iso);
+      events.push([ d.toISOString(), dayKey(d), fmtClock(d), u.name, u.username, status, e.id ]);
+    }
+    push(e.inAt, "Clock in");
+    e.pauses.forEach(function(p){
+      var d = pauseDef(p.type);
+      push(p.start, d.label + " start");
+      if(p.end) push(p.end, d.label + " end");
+    });
+    if(e.outAt) push(e.outAt, "Clock out");
+  });
+  // edits, approvals and deletions sit in the same log as the punches
+  (auditRecs || []).forEach(function(r){
+    var p = userOf(r.userId);
+    var when = new Date(r.at);
+    var h = auditHtml(r);
+    events.push([ when.toISOString(), r.date || dayKey(when), fmtClock(when),
+      p.name, p.username, h.what + (r.person ? " · " + r.person : "") + h.detail + " " + h.who,
+      r.entryId || "" ]);
+  });
+  events.sort(function(a,b){ return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+  events.unshift(["Timestamp (UTC ISO)","Date (ET)","Eastern time","Name","Username","Status","Shift ID"]);
+  return events.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n");
+}
+
+/* ---------------- dialog ---------------- */
+var dlg = $("dlg");
+function ask(title, fields, onOk){
+  $("dlgTitle").textContent = title;
+  $("dlgErr").textContent = "";
+  var body = $("dlgBody");
+  body.innerHTML = fields.map(function(f){
+    return '<label class="field"><span>' + esc(f.label) + '</span><input type="' + (f.type || "text") +
+      '" id="dlg_' + esc(f.key) + '" maxlength="60" autocapitalize="none" spellcheck="false"></label>';
+  }).join("");
+  $("dlgOk").textContent = "Save";
+  $("dlgOk").disabled = false;
+  $("dlgOk").onclick = function(){
+    var vals = {};
+    fields.forEach(function(f){ vals[f.key] = $("dlg_" + f.key).value; });
+    $("dlgOk").disabled = true;
+    Promise.resolve(onOk(vals)).then(function(msg){
+      $("dlgOk").disabled = false;
+      if(msg){ $("dlgErr").textContent = msg; return; }
+      dlg.close();
+    });
+  };
+  dlg.showModal();
+  var first = body.querySelector("input"); if(first) first.focus();
+}
+function confirmAsk(title, message, okLabel){
+  return new Promise(function(resolve){
+    $("dlgTitle").textContent = title;
+    $("dlgErr").textContent = "";
+    $("dlgBody").innerHTML = '<p class="note" style="margin:0 0 18px">' + esc(message) + "</p>";
+    $("dlgOk").textContent = okLabel;
+    $("dlgOk").disabled = false;
+    $("dlgOk").onclick = function(){ dlg.close("ok"); resolve(true); };
+    dlg.addEventListener("close", function once(){
+      dlg.removeEventListener("close", once);
+      if(dlg.returnValue !== "ok") resolve(false);
+    });
+    dlg.showModal();
+  });
+}
+
+/* ---------------- wiring ---------------- */
+$("btnOut").addEventListener("click", function(){
+  function leave(){
+    if(auth) api("POST", "/logout").catch(function(){});
+    storeAuth(null); blankState(); mode = "signin"; setView("clock");
+  }
+  // send anything still unsaved before this device forgets it
+  syncNow().then(function(){ return makePatch() ? syncNow() : null; }).then(leave, leave);
+});
+
+$("btnPin").addEventListener("click", function(){
+  ask("Change your passcode", [
+    { label:"Current passcode", key:"old", type:"password" },
+    { label:"New passcode", key:"a", type:"password" },
+    { label:"Repeat new passcode", key:"b", type:"password" }
+  ], function(v){
+    var u = currentUser();
+    if(v.a.length < 4) return "Use at least 4 characters.";
+    if(v.a !== v.b) return "The two entries don't match.";
+    return hashPin(v.old, u.salt).then(function(h){
+      if(h !== u.hash) return "That's not your current passcode.";
+      var salt = randSalt();
+      return hashPin(v.a, salt).then(function(nh){
+        u.salt = salt; u.hash = nh; save(); toast("Passcode changed.");
+        return null;
+      });
+    });
+  });
+});
+
+$("sWeek").addEventListener("click", function(){ thisWeek(); render(); });
+$("sFrom").addEventListener("change", render);
+$("sTo").addEventListener("change", render);
+function sheetTarget(){
+  var me = currentUser();
+  if(me.role !== "admin") return me;
+  return state.users.filter(function(x){ return x.id === $("sPerson").value; })[0] || me;
+}
+$("sPerson").addEventListener("change", render);
+$("sExport").addEventListener("click", function(){
+  var t = sheetTarget();
+  var list = rangeEntries(t.id, $("sFrom").value, $("sTo").value);
+  if(!list.length){ toast("Nothing to export in this range."); return; }
+  download("timesheet-" + t.username + "-" + $("sFrom").value + ".csv", toCsv(list));
+});
+$("sLog").addEventListener("click", function(){
+  var t = sheetTarget();
+  var from = $("sFrom").value, to = $("sTo").value;
+  var list = rangeEntries(t.id, from, to);
+  if(!list.length && !auditInRange(t.id, from, to).length){ toast("Nothing to export in this range."); return; }
+  download("punch-log-" + t.username + "-" + from + ".csv", toLogCsv(list, auditInRange(t.id, from, to)));
+});
+$("sheetBody").addEventListener("click", function(ev){
+  var t = ev.target;
+  if(!t.getAttribute) return;
+  var reqId = t.getAttribute("data-req"), editId = t.getAttribute("data-edit");
+  if(reqId){ var entry = findEntry(reqId); if(entry) submitRequestDialog(entry); }
+  if(editId){ var e2 = findEntry(editId); if(e2) editShiftDialog(e2); }
+});
+
+/* ---------------- bulk import ---------------- */
+function parseCsv(text){
+  var rows = [], row = [], cell = "", q = false;
+  text = String(text).replace(/^\uFEFF/, "");
+  var firstLine = text.split(/\r?\n/, 1)[0];
+  var delim = firstLine.split("\t").length > firstLine.split(",").length ? "\t" : ",";
+  for(var i=0;i<text.length;i++){
+    var c = text.charAt(i);
+    if(q){
+      if(c === '"'){ if(text.charAt(i+1) === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += c;
+    }
+    else if(c === '"') q = true;
+    else if(c === delim){ row.push(cell); cell = ""; }
+    else if(c === "\n"){ row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if(c !== "\r") cell += c;
+  }
+  if(cell !== "" || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(function(r){ return r.some(function(x){ return x.trim() !== ""; }); });
+}
+function genPin(){ return String(Math.floor(100000 + Math.random()*900000)); }
+
+function runImport(text){
+  var rows = parseCsv(text);
+  if(!rows.length) return Promise.resolve({ log:[], err:"There are no rows to import." });
+
+  var cols = ["name","username","passcode","role","mon","tue","wed","thu","fri","sat","sun"];
+  var head = rows[0].map(function(s){ return s.trim().toLowerCase(); });
+  if(head.indexOf("username") > -1){ cols = head; rows.shift(); }
+  function get(r, name){ var i = cols.indexOf(name); return i < 0 ? "" : String(r[i] || "").trim(); }
+
+  var log = [], jobs = Promise.resolve();
+  rows.forEach(function(r, n){
+    var line = n + 1;
+    var name = get(r, "name");
+    var rawUname = get(r, "username");
+    var uname = rawUname.toLowerCase().replace(/\s+/g, ".");
+    var notes = [];
+    if(uname !== rawUname.toLowerCase()) notes.push('Row ' + line + ': username "' + rawUname + '" saved as ' + uname + ' (no spaces allowed)');
+    var pin = get(r, "passcode");
+    var role = get(r, "role").toLowerCase() === "admin" ? "admin" : "staff";
+
+    if(!validUsername(uname)){
+      log.push({ bad:true, text:"Row " + line + ": \"" + (uname || name || "blank") + "\" isn't a usable username (3-20 characters, letters, numbers, dot, dash, underscore)." });
+      return;
+    }
+    var sched = {}, schedBad = null, anyDay = false, dayCols = 0, blanks = 0, flexes = 0;
+    Object.keys(DAY_COLS).forEach(function(k){
+      var i = cols.indexOf(k);
+      if(i < 0) return;
+      var d = DAY_COLS[k];
+      if(sched.hasOwnProperty(d)) return;
+      anyDay = true; dayCols++;
+      var cell = parseDayCell(r[i]);
+      if(cell.kind === "bad"){ schedBad = schedBad || (k + ' = "' + String(r[i]).trim() + '"'); return; }
+      if(cell.kind === "blank") blanks++;
+      if(cell.kind === "flex") flexes++;
+      if(cell.split) notes.push(name + " (" + k + "): split shift kept as two windows — " + cell.split.map(fmtRange).join("  +  "));
+      if(cell.kind === "flex") sched[d] = { flex:true };
+      else sched[d] = cell.kind === "range" ? cell.range : null;
+    });
+    // every day blank or "Executive" = no fixed schedule (shows "not set"), not "rest days only"
+    var noSched = anyDay && !schedBad && dayCols > 0 && (blanks + flexes === dayCols);
+    if(noSched) sched = null;
+    if(schedBad){
+      log.push({ bad:true, text:"Row " + line + " (" + uname + "): couldn't read " + schedBad + ". Use 9:00 AM-6:00 PM, 21:00-06:00, off or Rest day." });
+      return;
+    }
+
+    var existing = state.users.filter(function(x){ return x.username === uname; })[0];
+    if(existing){
+      if(name) existing.name = name;
+      if(anyDay) existing.sched = sched;
+      if(existing.role !== "admin" || role === "admin") existing.role = role;
+      if(pin){
+        jobs = jobs.then(function(){
+          var salt = randSalt();
+          return hashPin(pin, salt).then(function(h){ existing.salt = salt; existing.hash = h; });
+        });
+      }
+      notes.forEach(function(t){ log.push({ text:t, note:true }); });
+      log.push({ text:"Updated " + existing.name + " (@" + uname + ")" + (pin ? ", passcode reset" : "") + (noSched ? ", no fixed schedule" : "") });
+      return;
+    }
+    if(name.length < 2){
+      log.push({ bad:true, text:"Row " + line + " (" + uname + "): a full name is required for a new person." });
+      return;
+    }
+    var given = pin || genPin();
+    if(given.length < 4){
+      log.push({ bad:true, text:"Row " + line + " (" + uname + "): the passcode needs at least 4 characters." });
+      return;
+    }
+    jobs = jobs.then(function(){
+      var salt = randSalt();
+      return hashPin(given, salt).then(function(h){
+        state.users.push({ id: nextId("u"), username: uname, name: name, salt: salt, hash: h,
+          role: role, createdAt: new Date().toISOString(), active: true,
+          sched: anyDay ? sched : null });
+      });
+    });
+    notes.forEach(function(t){ log.push({ text:t, note:true }); });
+    log.push({ text:"Added " + name + " (@" + uname + ")" + (noSched ? ", no fixed schedule" : ""), pin: pin ? null : given });
+  });
+
+  return jobs.then(function(){ save(); render(); return { log: log }; });
+}
+
+function showImport(){
+  $("impErr").textContent = "";
+  $("impResult").innerHTML = "";
+  $("impText").value = "";
+  $("impFile").value = "";
+  $("impDlg").showModal();
+}
+$("tImport").addEventListener("click", showImport);
+$("impClose").addEventListener("click", function(){ $("impDlg").close(); });
+$("impFile").addEventListener("change", function(){
+  var f = $("impFile").files && $("impFile").files[0];
+  if(!f) return;
+  var fr = new FileReader();
+  fr.onload = function(){ $("impText").value = String(fr.result); $("impErr").textContent = ""; };
+  fr.onerror = function(){ $("impErr").textContent = "That file couldn't be read. Paste the rows instead."; };
+  fr.readAsText(f);
+});
+$("impGo").addEventListener("click", function(){
+  var text = $("impText").value.trim();
+  $("impErr").textContent = "";
+  if(!text){ $("impErr").textContent = "Choose a file or paste the rows first."; return; }
+  $("impGo").disabled = true;
+  runImport(text).then(function(res){
+    $("impGo").disabled = false;
+    if(res.err){ $("impErr").textContent = res.err; return; }
+    var ok = res.log.filter(function(l){ return !l.bad && !l.note; }).length;
+    var bad = res.log.filter(function(l){ return l.bad; }).length;
+    var html = "<p style='margin:0 0 8px'>" + ok + (ok === 1 ? " row applied" : " rows applied") +
+               (bad ? ", " + bad + " skipped" : "") + ".</p><ul>";
+    res.log.forEach(function(l){
+      html += "<li" + (l.bad ? ' class="bad"' : l.note ? ' class="note"' : "") + ">" + esc(l.text) +
+              (l.pin ? ' — passcode <span class="pin">' + esc(l.pin) + "</span>" : "") + "</li>";
+    });
+    $("impResult").innerHTML = html + "</ul>";
+    if(ok) toast(ok + (ok === 1 ? " row imported." : " rows imported."));
+  });
+});
+$("impTemplate").addEventListener("click", function(){
+  download("import-template.csv",
+    "name,username,passcode,role,mon,tue,wed,thu,fri,sat,sun\r\n" +
+    "Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off\r\n" +
+    "Dan Reyes,dreyes,,staff,21:00-06:00,21:00-06:00,21:00-06:00,off,off,21:00-06:00,21:00-06:00\r\n" +
+    "Ava Cruz,acruz,,admin,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,off,off\r\n");
+});
+$("tAdd").addEventListener("click", function(){
+  ask("Add a person", [
+    { label:"Full name", key:"name" },
+    { label:"Username", key:"user" },
+    { label:"Starting passcode", key:"pin", type:"password" }
+  ], function(v){
+    var uname = v.user.trim().toLowerCase();
+    if(v.name.trim().length < 2) return "Enter their full name.";
+    if(!validUsername(uname)) return "Usernames are 3-20 characters: letters, numbers, dot, dash or underscore.";
+    if(state.users.some(function(x){ return x.username === uname; })) return "That username is taken.";
+    if(v.pin.length < 4) return "The passcode needs at least 4 characters.";
+    var salt = randSalt();
+    hashPin(v.pin, salt).then(function(h){
+      state.users.push({ id: nextId("u"), username: uname, name: v.name.trim(), salt: salt, hash: h,
+        role: "staff", createdAt: new Date().toISOString(), active: true });
+      save(); render(); toast(v.name.trim() + " can now sign in.");
+    });
+    return null;
+  });
+});
+$("tExport").addEventListener("click", function(){
+  if(!state.entries.length){ toast("No shifts recorded yet."); return; }
+  download("all-timesheets-" + dayKey(new Date()) + ".csv", toCsv(state.entries.slice().sort(function(a,b){
+    return new Date(a.inAt) - new Date(b.inAt);
+  })));
+});
+$("tLog").addEventListener("click", function(){
+  if(!state.entries.length){ toast("No shifts recorded yet."); return; }
+  download("all-punch-logs-" + dayKey(new Date()) + ".csv", toLogCsv(state.entries, allAudit()));
+});
+$("tSignup").addEventListener("change", function(){
+  state.settings.signup = $("tSignup").value === "on";
+  save(); toast(state.settings.signup ? "Anyone can create an account." : "Only you can add people now.");
+});
+$("reqList").addEventListener("click", function(ev){
+  var id = ev.target.getAttribute && ev.target.getAttribute("data-review");
+  if(id) reviewRequestDialog(id);
+});
+$("teamBody").addEventListener("click", function(ev){
+  var t = ev.target;
+  if(!t.getAttribute) return;
+  var rid = t.getAttribute("data-reset"), tid = t.getAttribute("data-toggle"), sid = t.getAttribute("data-sched");
+  if(sid){
+    var su = state.users.filter(function(x){ return x.id === sid; })[0];
+    if(su) openSchedDialog(su);
+    return;
+  }
+  if(rid){
+    var user = state.users.filter(function(x){ return x.id === rid; })[0];
+    ask("Reset passcode for " + user.name, [{ label:"New passcode", key:"pin", type:"password" }], function(v){
+      if(v.pin.length < 4) return "Use at least 4 characters.";
+      var salt = randSalt();
+      hashPin(v.pin, salt).then(function(h){
+        user.salt = salt; user.hash = h; save(); toast("Passcode reset. Tell them to change it.");
+      });
+      return null;
+    });
+  }
+  if(tid){
+    var u2 = state.users.filter(function(x){ return x.id === tid; })[0];
+    var me = currentUser();
+    if(u2.id === me.id){ toast("You can't switch off your own account."); return; }
+    u2.active = !u2.active;
+    save(); render();
+  }
+});
+
+/* ---------------- schedule editor: fixed, split or flexible, day by day ---------------- */
+var SCHED_DAYS = [1,2,3,4,5,6,0];
+var schedDlg = $("schedDlg"), schedTarget = null;
+function kindOfDay(r){
+  if(!r) return "off";
+  if(r.flex) return "flex";
+  return schedWindows(r).length > 1 ? "split" : "fixed";
+}
+function fillSchedRow(row, r){
+  var kind = kindOfDay(r);
+  row.dataset.kind = kind;
+  row.querySelector(".sched-kind").value = kind;
+  var ws = schedWindows(r);
+  function put(sel, v){ var el = row.querySelector(sel); if(el) el.value = v; }
+  put(".t1", ws[0] ? hm24(ws[0].start) : "");
+  put(".t2", ws[0] ? hm24(ws[0].end) : "");
+  put(".t3", ws[1] ? hm24(ws[1].start) : "");
+  put(".t4", ws[1] ? hm24(ws[1].end) : "");
+}
+function readSchedRow(row){
+  var kind = row.querySelector(".sched-kind").value;
+  var d = +row.dataset.day;
+  if(kind === "off") return { d:d, day:null };
+  if(kind === "flex") return { d:d, day:{ flex:true } };
+  function get(sel){ return row.querySelector(sel).value; }
+  var a = parseTime(get(".t1")), b = parseTime(get(".t2"));
+  if(a === null || b === null) return { d:d, bad:true };
+  if(kind === "fixed") return { d:d, day:{ start:a, end:b } };
+  var c = parseTime(get(".t3")), e = parseTime(get(".t4"));
+  if(c === null || e === null) return { d:d, bad:true };
+  var ws = [{ start:a, end:b }, { start:c, end:e }].sort(function(x, y){ return x.start - y.start; });
+  return { d:d, day:{ start:ws[0].start, end:ws[ws.length-1].end, windows:ws } };
+}
+function eachSchedRow(fn){ Array.prototype.forEach.call($("schedRows").children, fn); }
+function copySchedTo(days){
+  var first = $("schedRows").children[0];
+  if(!first) return;
+  var day = readSchedRow(first).day;
+  eachSchedRow(function(row){ if(days.indexOf(+row.dataset.day) > -1) fillSchedRow(row, day); });
+}
+function openSchedDialog(su){
+  schedTarget = su;
+  $("schedTitle").textContent = "Schedule for " + su.name;
+  $("schedErr").textContent = "";
+  var wrap = $("schedRows");
+  wrap.innerHTML = "";
+  SCHED_DAYS.forEach(function(d){
+    var row = document.createElement("div");
+    row.className = "sched-row";
+    row.dataset.day = d;
+    row.innerHTML =
+      '<span class="sched-day">' + DAY_NAMES[d] + '</span>' +
+      '<select class="sched-kind" aria-label="' + DAY_NAMES[d] + ' kind">' +
+        '<option value="off">Rest day</option>' +
+        '<option value="fixed">Fixed hours</option>' +
+        '<option value="split">Split shift</option>' +
+        '<option value="flex">Flexible hours</option>' +
+      '</select>' +
+      '<span class="sched-times">' +
+        '<input type="time" class="t1" aria-label="' + DAY_NAMES[d] + ' start"> ' +
+        '<input type="time" class="t2" aria-label="' + DAY_NAMES[d] + ' end"> ' +
+        '<span class="sched-plus muted">+</span> ' +
+        '<input type="time" class="t3" aria-label="' + DAY_NAMES[d] + ' second shift start"> ' +
+        '<input type="time" class="t4" aria-label="' + DAY_NAMES[d] + ' second shift end">' +
+      '</span>';
+    row.querySelector(".sched-kind").addEventListener("change", function(){ row.dataset.kind = this.value; });
+    wrap.appendChild(row);
+    fillSchedRow(row, su.sched ? su.sched[d] : null);
+  });
+  schedDlg.showModal();
+}
+$("schedWeek").addEventListener("click", function(){ copySchedTo([2,3,4,5]); });
+$("schedAll").addEventListener("click", function(){ copySchedTo(SCHED_DAYS.slice(1)); });
+$("schedOff").addEventListener("click", function(){
+  eachSchedRow(function(row){ fillSchedRow(row, null); });
+});
+$("schedCancel").addEventListener("click", function(){ schedDlg.close(); });
+$("schedSave").addEventListener("click", function(){
+  if(!schedTarget) return;
+  var next = {}, bad = null, any = false;
+  eachSchedRow(function(row){
+    var res = readSchedRow(row);
+    if(res.bad){ bad = bad || DAY_NAMES[res.d]; return; }
+    if(res.day) any = true;
+    next[res.d] = res.day;
+  });
+  if(bad){
+    $("schedErr").textContent = "Couldn't read " + bad + " — pick both times (a split shift needs all four).";
+    return;
+  }
+  schedTarget.sched = any ? next : null;
+  schedDlg.close();
+  save(); render();
+  toast("Schedule saved for " + schedTarget.name + ".");
+});
+
+/* ---------------- go ---------------- */
+thisWeek();
+setView("clock");
+boot();
+})();
+</script>
+</body>
+</html>
+<script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="60a7a115-1330-4d32-ad1d-1170bab742d0" data-app-host="app.netlify.com"></script>
