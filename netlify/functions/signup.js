@@ -7,6 +7,7 @@ const store = require("../../lib/store.js");
 const USER_RE = /^[a-z0-9._-]{3,20}$/;
 
 exports.handler = async (event) => {
+  store.connect(event);
   if (event.httpMethod !== "POST") return store.reply(405, { error: "Use POST." });
   try {
     const body = store.readBody(event);
