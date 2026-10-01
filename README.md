@@ -6,7 +6,9 @@ Originally deployed as **Shift Clock** on `sundial-logs.netlify.app`; this copy 
 
 ## Big centre title
 `Prestige Dealer Alliance` with a spaced `TIMELOGS` subtitle and accent rule at the top of
-every screen (sign-in and app).
+every screen (sign-in and app). The **logo** (`logo.png`, transparent background) sits
+centred above the title, and the accent rule uses the logo's own colours — red `#FF0C04`
+and blue `#4AB1E0` (`--brand-red` / `--brand-blue`) — instead of the old green/amber.
 
 ## Admin edit function
 - Editing a shift writes an audit record: entry id, date, old → new times, timestamp and the
