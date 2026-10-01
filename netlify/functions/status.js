@@ -3,6 +3,7 @@
 const store = require("../../lib/store.js");
 
 exports.handler = async (event) => {
+  store.connect(event);
   if (event.httpMethod !== "GET" && event.httpMethod !== "HEAD") return store.reply(405, { error: "Use GET." });
   try {
     const db = await store.loadDb();
