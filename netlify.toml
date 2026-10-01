@@ -26,21 +26,25 @@
 # the backend source sits inside the published folder on purpose (it is bundled
 # from there); these are never served as ordinary files
 [[redirects]]
-  from = "/netlify/functions/*.js"
+  from = "/netlify/functions/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/lib/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/package.json"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/netlify.toml"
   to = "/404.html"
   status = 404
+  force = true
