@@ -223,9 +223,13 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 .sched-day{width:3.2em;flex:none;font-weight:600;font-size:.92rem}
 .sched-kind{flex:1 1 150px;min-width:132px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper)}
 .sched-times{display:flex;align-items:center;gap:6px;flex:2 1 268px;flex-wrap:wrap}
-.sched-times input[type=time]{
+.sched-times input{
   padding:8px 9px;border-radius:8px;border:1px solid var(--line);background:#071A2A;
   color:var(--paper);font-family:var(--mono);font-size:.88rem;width:7.6em
+}
+#schedDlg textarea{
+  width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;
+  color:var(--paper);resize:vertical;font-family:inherit;font-size:.9rem
 }
 .sched-plus{font-size:.9rem}
 .sched-row[data-kind="off"] .sched-times,
@@ -303,6 +307,9 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
           <span class="readout hero-time" style="font-size:clamp(2.6rem,11vw,4rem)"><span id="hh">--:--</span><span class="hero-sec" id="ss">:--</span></span>
           <p class="hero-date" id="today" style="text-align:left;margin-top:8px"></p>
           <p class="hero-date" id="schedLine" style="text-align:left;margin-top:2px"></p>
+          <div style="margin-top:9px">
+            <button class="btn btn-quiet hidden" id="btnSchedReq" type="button" style="padding:7px 13px;font-size:.85rem">Request schedule change</button>
+          </div>
           <div style="margin-top:18px">
             <span class="chip chip-off" id="chip"><i class="dot"></i><span id="chipText">Off the clock</span></span>
           </div>
@@ -327,6 +334,7 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
           <label class="field"><span>From</span><input type="date" id="sFrom"></label>
           <label class="field"><span>To</span><input type="date" id="sTo"></label>
           <button class="btn" id="sWeek">This week</button>
+          <button class="btn btn-in hidden" id="sAdd">Add shift</button>
           <button class="btn" id="sExport">Export timesheet</button>
           <button class="btn" id="sLog">Export punch log</button>
         </div>
@@ -370,7 +378,7 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
         <h2>People</h2>
         <div class="scroller">
           <table>
-            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Schedule (ET)</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Schedule (EST)</th><th>Status</th><th></th></tr></thead>
             <tbody id="teamBody"></tbody>
           </table>
         </div>
@@ -390,13 +398,16 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 
 <dialog id="schedDlg">
   <h2 id="schedTitle">Schedule</h2>
-  <p class="note" style="margin:-8px 0 14px">Times are Eastern. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.</p>
+  <p class="note" id="schedNote" style="margin:-8px 0 14px">Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.</p>
   <div class="sched-quick">
     <button class="btn btn-quiet" id="schedWeek" type="button">Copy Monday to weekdays</button>
     <button class="btn btn-quiet" id="schedAll" type="button">Copy Monday to every day</button>
     <button class="btn btn-quiet" id="schedOff" type="button">All days off</button>
   </div>
   <div id="schedRows"></div>
+  <label class="field hidden" id="schedWhyField" style="margin-top:14px"><span>Why do you need this change?</span>
+    <textarea id="schedWhy" rows="2" placeholder="e.g. my classes moved to the mornings"></textarea>
+  </label>
   <p class="err" id="schedErr"></p>
   <div class="dlg-actions">
     <button class="btn btn-quiet" id="schedCancel" type="button">Cancel</button>
@@ -409,10 +420,10 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
   <p class="note" style="margin:0 0 14px">
     One person per row, in this column order — a header row is optional:<br>
     <code class="readout" style="color:var(--paper);display:block;margin-top:8px;font-size:.82rem;line-height:1.7">name, username, passcode, role, mon, tue, wed, thu, fri, sat, sun</code>
-    Each day is a shift like <code class="readout">9:00 AM-6:00 PM</code> or <code class="readout">21:00-06:00</code>, or <code class="readout">off</code> / <code class="readout">Rest day</code> for a day off.
+    Each day is a shift like <code class="readout">9:00 AM-6:00 PM</code> (Eastern) or <code class="readout">10:00 PM-6:00 AM</code>, or <code class="readout">off</code> / <code class="readout">Rest day</code> for a day off.
     Two shifts in one cell keep both windows, e.g. <code class="readout">8:00 AM-12:00 PM + 1:00 PM-5:00 PM</code>. Write <code class="readout">Flexible</code> for a day with no fixed hours.
     Leave every day blank (or write <code class="readout">Executive</code>) for no fixed schedule. Comma or tab separated both work.
-    Leave the passcode blank and one gets generated. An existing username is updated, not duplicated. All times are Eastern.
+    Leave the passcode blank and one gets generated. An existing username is updated, not duplicated. Every time on this site is Eastern (EST).
   </p>
   <input type="file" id="impFile" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" style="margin-bottom:10px">
   <textarea id="impText" rows="6" spellcheck="false" placeholder="Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off"></textarea>
@@ -690,13 +701,15 @@ function tzParts(d){
 }
 function dayKey(d){ var p = tzParts(d); return p.year + "-" + p.month + "-" + p.day; }
 function minsOfDay(d){ var p = tzParts(d); return (+p.hour)*60 + (+p.minute); }
-function fmtClock(d){ var p = tzParts(d); var h = +p.hour; var ap = h<12?"AM":"PM"; h = h%12 || 12; return h+":"+p.minute+" "+ap; }
-function fmtHM(mins){ var h = Math.floor(mins/60), m = mins%60; var ap = h<12?"AM":"PM"; h = h%12 || 12; return h+":"+pad(m)+" "+ap; }
-function hm24(mins){ return pad(Math.floor(mins/60)) + ":" + pad(mins%60); }
+/* Every clock on the site reads US Eastern, written the way people say it out
+   loud: 9:05 AM, 6:00 PM. minsOfDay()/etToUtc keep working in minutes. */
+function fmtClock(d){ var p = tzParts(d); var h = +p.hour; var ap = h < 12 ? "AM" : "PM"; return (h % 12 || 12) + ":" + p.minute + " " + ap; }
+function fmtHM(mins){ var h = Math.floor(mins/60) % 24, m = mins%60; var ap = h < 12 ? "AM" : "PM"; return (h % 12 || 12) + ":" + pad(m) + " " + ap; }
+function hm12(mins){ return fmtHM(((mins % 1440) + 1440) % 1440); }
 function fmtLongDate(d){
   try{
     return new Intl.DateTimeFormat(undefined,{ timeZone:TZ, weekday:"long", month:"long", day:"numeric", year:"numeric" }).format(d)
-      + " · Eastern time";
+      + " · Eastern (EST)";
   }catch(e){ return d.toDateString(); }
 }
 function keyToDate(key){ var a = key.split("-"); return new Date(+a[0], +a[1]-1, +a[2]); }
@@ -1047,6 +1060,10 @@ function render(){
   $("whoRole").textContent = "@" + u.username + (u.role === "admin" ? " · admin" : "");
   show($("tabTeam"), u.role === "admin");
   show($("btnPin"), u.role === "admin");   // passcodes are changed by an admin
+  show($("sExport"), u.role === "admin");  // only an admin exports timesheets and punch logs
+  show($("sLog"), u.role === "admin");
+  show($("sAdd"), u.role === "admin");     // the admin adds shifts for other people too
+  show($("btnSchedReq"), u.role !== "admin"); // staff ask for schedule changes, the admin approves them
   document.querySelector('.tab[data-view="sheet"]').textContent = u.role === "admin" ? "Timesheets" : "My timesheet";
   if(u.role !== "admin" && view === "team") setView("clock");
 
@@ -1138,8 +1155,13 @@ function renderSheet(me){
     if(unseen.length){
       unseen.forEach(function(r){
         r.seen = true;
-        toast(r.status === "approved" ? "Your correction for " + fmtShortDate(r.date) + " was approved."
-                                       : "Your correction for " + fmtShortDate(r.date) + " was declined.");
+        if(r.kind === "schedule"){
+          toast(r.status === "approved" ? "Your schedule change was approved."
+                                        : "Your schedule change was declined.");
+        } else {
+          toast(r.status === "approved" ? "Your correction for " + fmtShortDate(r.date) + " was approved."
+                                        : "Your correction for " + fmtShortDate(r.date) + " was declined.");
+        }
       });
       save();
     }
@@ -1220,9 +1242,13 @@ function renderTeam(){
   var reqList = $("reqList"); reqList.innerHTML = "";
   pending.forEach(function(r){
     var u = userOf(r.userId);
+    var isSched = r.kind === "schedule";
     var li = document.createElement("li");
-    li.innerHTML = '<span class="p-when readout">' + esc(fmtShortDate(r.date)) + '</span>' +
-      '<span class="p-what">' + esc(u.name) + ' wants in ' + esc(r.reqIn) + (r.reqOut ? ", out " + esc(r.reqOut) : ", still open") + '</span>' +
+    li.innerHTML = '<span class="p-when readout"' + (isSched ? ' style="width:7.6em"' : "") + '>' +
+      (isSched ? "Schedule" : esc(fmtShortDate(r.date))) + '</span>' +
+      '<span class="p-what">' + (isSched
+        ? esc(u.name) + ' wants a new schedule'
+        : esc(u.name) + ' wants in ' + esc(r.reqIn) + (r.reqOut ? ", out " + esc(r.reqOut) : ", still open")) + '</span>' +
       '<button class="btn btn-quiet" data-review="' + esc(r.id) + '" style="padding:4px 10px;font-size:.85rem">Review</button>';
     reqList.appendChild(li);
   });
@@ -1328,16 +1354,20 @@ function describeShift(e){
   return fmtClock(new Date(e.inAt)) + " – " + (e.outAt ? fmtClock(new Date(e.outAt)) : "still open");
 }
 /* Written on the shift itself and in the shared log, so the name survives
-   even if one of the two is not stored by the server. */
-function logEdit(entry, action, changes){
+   even if one of the two is not stored by the server. extra lets a record
+   that is not tied to a shift (a schedule, a decline) still name the person
+   it happened to. */
+function logEdit(entry, action, changes, extra){
+  extra = extra || {};
   var me = currentUser();
   var rec = {
     id: nextId("a"), at: new Date().toISOString(), action: action,
-    by: me ? me.username : "", byName: me ? me.name : "",
-    entryId: entry ? entry.id : null,
-    userId: entry ? entry.userId : null,
-    date: entry ? entry.date : null,
-    person: entry ? userOf(entry.userId).name : "",
+    by: extra.by !== undefined ? extra.by : (me ? me.username : ""),
+    byName: me ? me.name : "",
+    entryId: entry ? entry.id : (extra.entryId || null),
+    userId: extra.userId !== undefined ? extra.userId : (entry ? entry.userId : null),
+    date: extra.date !== undefined ? extra.date : (entry ? entry.date : null),
+    person: extra.person !== undefined ? extra.person : (entry ? userOf(entry.userId).name : ""),
     changes: changes || []
   };
   if(entry){
@@ -1351,11 +1381,33 @@ function logEdit(entry, action, changes){
 }
 function auditHtml(r){
   var who = r.by ? "@" + r.by : "an admin";
-  var what = r.action === "delete" ? "Deleted a shift"
-           : r.action === "approve" ? "Approved a correction"
-           : "Edited a shift";
+  var what =
+      r.action === "delete"        ? "Deleted a shift"
+    : r.action === "add"           ? "Added a shift"
+    : r.action === "approve"       ? "Approved a correction"
+    : r.action === "decline"       ? "Declined a correction"
+    : r.action === "schedule"      ? "Updated a schedule"
+    : r.action === "sched-approve" ? "Approved a schedule change"
+    : r.action === "sched-decline" ? "Declined a schedule change"
+    : "Edited a shift";
   var detail = (r.changes || []).length ? " — " + r.changes.join("; ") : "";
   return { who:who, what:what, detail:detail };
+}
+/* Day-by-day difference between two schedules, written the way a person reads it. */
+function schedChanges(fromSched, toSched){
+  var out = [];
+  [1,2,3,4,5,6,0].forEach(function(d){
+    var a = fromSched ? fromSched[d] : null;
+    var b = toSched ? toSched[d] : null;
+    if(J(a === undefined ? null : a) === J(b === undefined ? null : b)) return;
+    out.push(DAY_NAMES[d] + " " + dayTag(a || null) + " → " + dayTag(b || null));
+  });
+  return out;
+}
+function pendingSchedReq(userId){
+  return state.requests.filter(function(r){
+    return r.userId === userId && r.kind === "schedule" && r.status === "pending";
+  })[0] || null;
 }
 
 /* ---------------- shift edit requests ---------------- */
@@ -1368,19 +1420,23 @@ function lastReqFor(entryId){
   return list.length ? list[list.length-1] : null;
 }
 function submitRequestDialog(entry){
+  var entryId = entry.id;          /* looked up again when the form is sent, so a
+                                      background sync can't leave us with a stale copy */
   var u = currentUser();
   var curOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "";
   openAct("Request a correction",
     '<p class="note" style="margin:0 0 14px">On file for ' + esc(fmtShortDate(entry.date)) + ': clocked in ' +
       esc(fmtClock(new Date(entry.inAt))) + (entry.outAt ? ", out " + esc(curOut) : ", still open") +
       '. An admin reviews this before anything changes.</p>' +
-    '<label class="field"><span>Correct clock-in time</span><input id="reqIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
-    '<label class="field"><span>Correct clock-out time</span><input id="reqOut" value="' + esc(curOut) + '" placeholder="leave blank if still open"></label>' +
+    '<label class="field"><span>Correct clock-in time (EST)</span><input id="reqIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
+    '<label class="field"><span>Correct clock-out time (EST)</span><input id="reqOut" value="' + esc(curOut) + '" placeholder="leave blank if still open"></label>' +
     '<label class="field"><span>What happened?</span><textarea id="reqNote" rows="3" placeholder="e.g. forgot to clock out at lunch"></textarea></label>',
     [
       { label:"Cancel", cls:"btn-quiet", close:true },
       { label:"Submit request", cls:"btn-in", run:function(body){
-          if(pendingReqFor(entry.id)) return "There's already a pending request for this shift.";
+          var cur = findEntry(entryId);
+          if(!cur) return "That shift is no longer on the sheet.";
+          if(pendingReqFor(cur.id)) return "There's already a pending request for this shift.";
           var inStr = body.querySelector("#reqIn").value.trim();
           var outStr = body.querySelector("#reqOut").value.trim();
           var note = body.querySelector("#reqNote").value.trim();
@@ -1388,88 +1444,168 @@ function submitRequestDialog(entry){
           if(outStr && parseTime(outStr) === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
           if(note.length < 3) return "Add a short note about what's wrong.";
           state.requests.push({
-            id: nextId("r"), userId: u.id, entryId: entry.id, date: entry.date,
-            curIn: entry.inAt, curOut: entry.outAt,
+            id: nextId("r"), userId: u.id, entryId: cur.id, date: cur.date, kind: "shift",
+            curIn: cur.inAt, curOut: cur.outAt,
             reqIn: inStr, reqOut: outStr, note: note,
             status: "pending", createdAt: new Date().toISOString(),
-            resolvedAt: null, resolverNote: "", seen: true
+            resolvedAt: null, resolvedBy: "", resolverNote: "", seen: true
           });
           save(); render();
-          toast("Request submitted for review.");
+          toast("Request submitted — an admin approves it before anything changes.");
           return null;
         } }
     ]);
 }
 function reviewRequestDialog(reqId){
-  var r = state.requests.filter(function(x){ return x.id === reqId; })[0];
+  function getReq(){ return state.requests.filter(function(x){ return x.id === reqId; })[0] || null; }
+  var r = getReq();
   if(!r) return;
+  if(r.kind === "schedule") return reviewSchedRequestDialog(reqId);
+
   var u = userOf(r.userId);
   var entry = findEntry(r.entryId);
+  var me = currentUser();
   openAct("Review request — " + u.name,
     '<p class="note" style="margin:0 0 6px">' + esc(fmtShortDate(r.date)) + '</p>' +
     '<p class="note" style="margin:0 0 14px">On file: in ' + esc(fmtClock(new Date(r.curIn))) +
       (r.curOut ? ", out " + esc(fmtClock(new Date(r.curOut))) : ", still open") + '.<br>' +
-      esc(u.name) + ' says: “' + esc(r.note) + '”</p>' +
+      esc(u.name) + ' says: “' + esc(r.note) + '”<br>' +
+      'Approving writes your username — <strong style="color:var(--amber)">@' + esc(me ? me.username : "") +
+      '</strong> — into the change history at the bottom of their sheet.</p>' +
     (entry
-      ? '<label class="field"><span>Approve with clock-in</span><input id="revIn" value="' + esc(r.reqIn) + '"></label>' +
-        '<label class="field"><span>Approve with clock-out</span><input id="revOut" value="' + esc(r.reqOut) + '" placeholder="leave blank = still open"></label>'
+      ? '<label class="field"><span>Approve with clock-in (EST)</span><input id="revIn" value="' + esc(r.reqIn) + '"></label>' +
+        '<label class="field"><span>Approve with clock-out (EST)</span><input id="revOut" value="' + esc(r.reqOut) + '" placeholder="leave blank = still open"></label>'
       : '<p class="note" style="margin:0">That shift no longer exists — only Decline is available.</p>'),
     [
       { label:"Decline", cls:"btn-danger", run:function(){
-          r.status = "declined"; r.resolvedAt = new Date().toISOString(); r.seen = false;
-          save(); render(); toast("Request declined.");
+          var req = getReq();
+          if(!req) return "That request is no longer here.";
+          if(req.status !== "pending") return "That request has already been dealt with.";
+          var who = currentUser();
+          var ent = findEntry(req.entryId);
+          req.status = "declined"; req.resolvedAt = new Date().toISOString();
+          req.resolvedBy = who ? who.username : ""; req.seen = false;
+          logEdit(ent, "decline", ["declined @" + userOf(req.userId).username + "'s request for " +
+            fmtShortDate(req.date) + (req.note ? " — " + req.note : "")],
+            ent ? {} : { userId:req.userId, date:req.date, person:userOf(req.userId).name });
+          save(); render(); toast("Request declined — logged as @" + (who ? who.username : "admin") + ".");
           return null;
         } }
     ].concat(entry ? [{ label:"Approve", cls:"btn-in", run:function(body){
+          var req = getReq();
+          if(!req) return "That request is no longer here.";
+          if(req.status !== "pending") return "That request has already been dealt with.";
+          var ent = findEntry(req.entryId);
+          if(!ent) return "That shift no longer exists — only Decline is available.";
           var inStr = body.querySelector("#revIn").value.trim();
           var outStr = body.querySelector("#revOut").value.trim();
-          var beforeIn = fmtClock(new Date(entry.inAt));
-          var beforeOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
-          var err = applyEditedTimes(entry, r.date, inStr, outStr);
+          var beforeIn = fmtClock(new Date(ent.inAt));
+          var beforeOut = ent.outAt ? fmtClock(new Date(ent.outAt)) : "still open";
+          var err = applyEditedTimes(ent, ent.date, inStr, outStr);
           if(err) return err;
           var changes = [];
-          var afterIn = fmtClock(new Date(entry.inAt));
-          var afterOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          var afterIn = fmtClock(new Date(ent.inAt));
+          var afterOut = ent.outAt ? fmtClock(new Date(ent.outAt)) : "still open";
           if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
           if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
           changes.unshift("approved @" + u.username + "'s request");
-          logEdit(entry, "approve", changes);
-          r.status = "approved"; r.resolvedAt = new Date().toISOString(); r.seen = false;
-          save(); render(); toast("Request approved and applied — logged as @" + currentUser().username + ".");
+          logEdit(ent, "approve", changes);
+          var who = currentUser();
+          req.status = "approved"; req.resolvedAt = new Date().toISOString();
+          req.resolvedBy = who ? who.username : ""; req.seen = false;
+          save(); render();
+          toast("Request approved and applied — logged as @" + (who ? who.username : "admin") + ".");
           return null;
         } }] : []));
 }
+/* A request to change a schedule: the admin reads it side by side and then
+   approves or declines, and whichever they do is written into the history. */
+function reviewSchedRequestDialog(reqId){
+  function getReq(){ return state.requests.filter(function(x){ return x.id === reqId; })[0] || null; }
+  var r = getReq();
+  if(!r) return;
+  var u = userOf(r.userId);
+  var me = currentUser();
+  openAct("Schedule request — " + u.name,
+    '<p class="note" style="margin:0 0 6px">On file now</p>' +
+    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.curSched || null }) + '</p>' +
+    '<p class="note" style="margin:0 0 6px">Requested</p>' +
+    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.sched || null }) + '</p>' +
+    (r.note ? '<p class="note" style="margin:0 0 14px">' + esc(u.name) + ' says: “' + esc(r.note) + '”</p>' : '') +
+    '<label class="field"><span>Note back to ' + esc(u.name) + ' (optional)</span><textarea id="revNote" rows="2"></textarea></label>' +
+    '<p class="note" style="margin:0">Approving saves the schedule and writes your username — ' +
+      '<strong style="color:var(--amber)">@' + esc(me ? me.username : "") + '</strong> — into the change history at the bottom of their sheet.</p>',
+    [
+      { label:"Decline", cls:"btn-danger", run:function(){
+          var req = getReq();
+          if(!req) return "That request is no longer here.";
+          if(req.status !== "pending") return "That request has already been dealt with.";
+          var who = currentUser();
+          var target = userOf(req.userId);
+          req.status = "declined"; req.resolvedAt = new Date().toISOString();
+          req.resolvedBy = who ? who.username : ""; req.seen = false;
+          logEdit(null, "sched-decline", ["declined @" + target.username + "'s schedule request" +
+            (req.note ? " — " + req.note : "")], { userId:req.userId, person:target.name, date:null });
+          save(); render(); toast("Schedule request declined — logged as @" + (who ? who.username : "admin") + ".");
+          return null;
+        } },
+      { label:"Approve", cls:"btn-in", run:function(){
+          var req = getReq();
+          if(!req) return "That request is no longer here.";
+          if(req.status !== "pending") return "That request has already been dealt with.";
+          var target = state.users.filter(function(x){ return x.id === req.userId; })[0];
+          if(!target) return "That person is no longer on the list.";
+          var who = currentUser();
+          var changes = schedChanges(target.sched || null, req.sched || null);
+          if(!changes.length) changes.push("schedule confirmed — nothing was different");
+          changes.unshift("approved @" + target.username + "'s schedule request");
+          target.sched = req.sched || null;
+          logEdit(null, "sched-approve", changes, { userId: target.id, person: target.name, date: null });
+          req.status = "approved"; req.resolvedAt = new Date().toISOString();
+          req.resolvedBy = who ? who.username : ""; req.seen = false;
+          save(); render();
+          toast("Schedule approved and applied for " + target.name + " — logged as @" + (who ? who.username : "admin") + ".");
+          return null;
+        } }
+    ]);
+}
 function editShiftDialog(entry){
+  var entryId = entry.id;          /* resolved again on save: the page syncs in the
+                                      background and replaces these objects */
   var u = userOf(entry.userId);
   var me = currentUser();
   openAct("Edit shift — " + u.name,
     '<p class="note" style="margin:0 0 14px">' + esc(fmtShortDate(entry.date)) + ' · on file now: ' + esc(describeShift(entry)) + '</p>' +
-    '<label class="field"><span>Clock in</span><input id="edIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
-    '<label class="field"><span>Clock out</span><input id="edOut" value="' + (entry.outAt ? esc(fmtClock(new Date(entry.outAt))) : "") + '" placeholder="leave blank = still open"></label>' +
-    '<p class="note" style="margin:2px 0 0">Saved straight onto this timesheet and written into the change history at the bottom of the sheet as <strong style="color:var(--amber)">@' +
+    '<label class="field"><span>Clock in (EST)</span><input id="edIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
+    '<label class="field"><span>Clock out (EST)</span><input id="edOut" value="' + (entry.outAt ? esc(fmtClock(new Date(entry.outAt))) : "") + '" placeholder="leave blank = still open"></label>' +
+    '<p class="note" style="margin:2px 0 0">Saved straight onto ' + esc(u.name) + '\'s timesheet and written into the change history at the bottom of the sheet as <strong style="color:var(--amber)">@' +
       esc(me ? me.username : "") + '</strong>.</p>',
     [
       { label:"Delete shift", cls:"btn-danger", confirm:true, confirmLabel:"Click again to delete", run:function(){
-          logEdit(entry, "delete", ["shift " + fmtShortDate(entry.date) + " (" + describeShift(entry) + ")"]);
-          state.entries = state.entries.filter(function(x){ return x.id !== entry.id; });
-          state.requests = state.requests.filter(function(x){ return x.entryId !== entry.id; });
+          var cur = findEntry(entryId);
+          if(!cur) return "That shift is already gone.";
+          logEdit(cur, "delete", ["shift " + fmtShortDate(cur.date) + " (" + describeShift(cur) + ")"]);
+          state.entries = state.entries.filter(function(x){ return x.id !== entryId; });
+          state.requests = state.requests.filter(function(x){ return x.entryId !== entryId; });
           save(); render();
           toast("Shift deleted — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
           return null;
         } },
       { label:"Cancel", cls:"btn-quiet", close:true },
       { label:"Save changes", cls:"btn-in", run:function(body){
-          var beforeIn = fmtClock(new Date(entry.inAt));
-          var beforeOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
-          var err = applyEditedTimes(entry, entry.date, body.querySelector("#edIn").value.trim(), body.querySelector("#edOut").value.trim());
+          var cur = findEntry(entryId);
+          if(!cur) return "That shift is no longer on the sheet.";
+          var beforeIn = fmtClock(new Date(cur.inAt));
+          var beforeOut = cur.outAt ? fmtClock(new Date(cur.outAt)) : "still open";
+          var err = applyEditedTimes(cur, cur.date, body.querySelector("#edIn").value.trim(), body.querySelector("#edOut").value.trim());
           if(err) return err;
           var changes = [];
-          var afterIn = fmtClock(new Date(entry.inAt));
-          var afterOut = entry.outAt ? fmtClock(new Date(entry.outAt)) : "still open";
+          var afterIn = fmtClock(new Date(cur.inAt));
+          var afterOut = cur.outAt ? fmtClock(new Date(cur.outAt)) : "still open";
           if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
           if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
           if(!changes.length){ toast("Nothing changed on this shift."); return null; }
-          logEdit(entry, "edit", changes);
+          logEdit(cur, "edit", changes);
           save(); render();
           toast("Shift updated — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
           return null;
@@ -1505,7 +1641,7 @@ function tick(){
   var now = new Date();
   var p = tzParts(now);
   var h24 = +p.hour;
-  var ap = h24 < 12 ? "AM" : "PM";
+  var ap = h24 < 12 ? "AM" : "PM";            /* the clock is always Eastern */
   var hh = (h24 % 12 || 12) + ":" + p.minute;
   var ss = ":" + p.second + " " + ap;
   $("authHH").textContent = hh;
@@ -1581,7 +1717,7 @@ function toCsv(entries){
     r.push(Math.round(breakMs(e, ref)/60000));
     r.push(e.outAt ? decHours(workedMs(e)) : "");
     r.push(e.outAt ? "closed" : "still open");
-    r.push("US Eastern");
+    r.push("EST");
     r.push(lastEditorOf(e.id));
     rows.push(r);
   });
@@ -1613,7 +1749,7 @@ function toLogCsv(entries, auditRecs){
       r.entryId || "" ]);
   });
   events.sort(function(a,b){ return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
-  events.unshift(["Timestamp (UTC ISO)","Date (ET)","Eastern time","Name","Username","Status","Shift ID"]);
+  events.unshift(["Timestamp (UTC ISO)","Date (EST)","Time (EST)","Name","Username","Status","Shift ID"]);
   return events.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n");
 }
 
@@ -1710,6 +1846,44 @@ $("sLog").addEventListener("click", function(){
   if(!list.length && !auditInRange(t.id, from, to).length){ toast("Nothing to export in this range."); return; }
   download("punch-log-" + t.username + "-" + from + ".csv", toLogCsv(list, auditInRange(t.id, from, to)));
 });
+
+/* the admin writes a shift straight onto somebody else's sheet; it is signed
+   in the change history at the bottom like every other change */
+$("sAdd").addEventListener("click", function(){
+  var t = sheetTarget();
+  openAct("Add a shift for " + t.name,
+    '<p class="note" style="margin:0 0 14px">Written onto ' + esc(t.name) + '\'s timesheet and signed in the change history at the bottom of the sheet as <strong style="color:var(--amber)">@' +
+      esc(currentUser() ? currentUser().username : "") + '</strong>.</p>' +
+    '<label class="field"><span>Date (Eastern)</span><input type="date" id="addDate" value="' + dayKey(new Date()) + '"></label>' +
+    '<label class="field"><span>Clock in (EST)</span><input id="addIn" placeholder="9:00 AM"></label>' +
+    '<label class="field"><span>Clock out (EST)</span><input id="addOut" placeholder="6:00 PM — leave blank if still open"></label>',
+    [
+      { label:"Cancel", cls:"btn-quiet", close:true },
+      { label:"Add shift", cls:"btn-in", run:function(body){
+          var dateKey = body.querySelector("#addDate").value;
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return "Pick the day this shift happened.";
+          var inStr = body.querySelector("#addIn").value.trim();
+          var outStr = body.querySelector("#addOut").value.trim();
+          if(parseTime(inStr) === null) return "Enter the clock-in time like 9:05 AM.";
+          if(outStr && parseTime(outStr) === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
+          if(!outStr && openEntry(t.id)) return t.name + " is already clocked in — clock them out first.";
+          var entry = { id: nextId("e"), userId: t.id, date: dateKey, inAt: null, outAt: null, pauses: [] };
+          var err = applyEditedTimes(entry, dateKey, inStr, outStr);
+          if(err) return err;
+          state.entries.push(entry);
+          logEdit(entry, "add", ["added " + fmtShortDate(dateKey) + " " + describeShift(entry)]);
+          save(); render();
+          toast("Shift added for " + t.name + " — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
+          return null;
+        } }
+    ]);
+});
+
+/* staff ask for a new schedule from the clock screen */
+$("btnSchedReq").addEventListener("click", function(){
+  var u = currentUser();
+  if(u) openSchedDialog(u, "request");
+});
 $("sheetBody").addEventListener("click", function(ev){
   var t = ev.target;
   if(!t.getAttribute) return;
@@ -1783,7 +1957,7 @@ function runImport(text){
     var noSched = anyDay && !schedBad && dayCols > 0 && (blanks + flexes === dayCols);
     if(noSched) sched = null;
     if(schedBad){
-      log.push({ bad:true, text:"Row " + line + " (" + uname + "): couldn't read " + schedBad + ". Use 9:00 AM-6:00 PM, 21:00-06:00, off or Rest day." });
+      log.push({ bad:true, text:"Row " + line + " (" + uname + "): couldn't read " + schedBad + ". Use 9:00 AM-6:00 PM, 10:00 PM-6:00 AM, off or Rest day." });
       return;
     }
 
@@ -1867,7 +2041,7 @@ $("impTemplate").addEventListener("click", function(){
   download("import-template.csv",
     "name,username,passcode,role,mon,tue,wed,thu,fri,sat,sun\r\n" +
     "Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off\r\n" +
-    "Dan Reyes,dreyes,,staff,21:00-06:00,21:00-06:00,21:00-06:00,off,off,21:00-06:00,21:00-06:00\r\n" +
+    "Dan Reyes,dreyes,,staff,10:00 PM-6:00 AM,10:00 PM-6:00 AM,10:00 PM-6:00 AM,off,off,10:00 PM-6:00 AM,10:00 PM-6:00 AM\r\n" +
     "Ava Cruz,acruz,,admin,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,off,off\r\n");
 });
 $("tAdd").addEventListener("click", function(){
@@ -1939,7 +2113,7 @@ $("teamBody").addEventListener("click", function(ev){
 
 /* ---------------- schedule editor: fixed, split or flexible, day by day ---------------- */
 var SCHED_DAYS = [1,2,3,4,5,6,0];
-var schedDlg = $("schedDlg"), schedTarget = null;
+var schedDlg = $("schedDlg"), schedTargetId = null, schedMode = "edit";
 function kindOfDay(r){
   if(!r) return "off";
   if(r.flex) return "flex";
@@ -1951,10 +2125,10 @@ function fillSchedRow(row, r){
   row.querySelector(".sched-kind").value = kind;
   var ws = schedWindows(r);
   function put(sel, v){ var el = row.querySelector(sel); if(el) el.value = v; }
-  put(".t1", ws[0] ? hm24(ws[0].start) : "");
-  put(".t2", ws[0] ? hm24(ws[0].end) : "");
-  put(".t3", ws[1] ? hm24(ws[1].start) : "");
-  put(".t4", ws[1] ? hm24(ws[1].end) : "");
+  put(".t1", ws[0] ? hm12(ws[0].start) : "");
+  put(".t2", ws[0] ? hm12(ws[0].end) : "");
+  put(".t3", ws[1] ? hm12(ws[1].start) : "");
+  put(".t4", ws[1] ? hm12(ws[1].end) : "");
 }
 function readSchedRow(row){
   var kind = row.querySelector(".sched-kind").value;
@@ -1977,9 +2151,18 @@ function copySchedTo(days){
   var day = readSchedRow(first).day;
   eachSchedRow(function(row){ if(days.indexOf(+row.dataset.day) > -1) fillSchedRow(row, day); });
 }
-function openSchedDialog(su){
-  schedTarget = su;
-  $("schedTitle").textContent = "Schedule for " + su.name;
+function openSchedDialog(su, mode){
+  /* the person is remembered by id: while this box is open the page keeps
+     syncing in the background and rebuilds its copies of these records */
+  schedMode = mode === "request" ? "request" : "edit";
+  schedTargetId = su.id;
+  $("schedTitle").textContent = schedMode === "request" ? "Request a new schedule" : "Schedule for " + su.name;
+  $("schedSave").textContent = schedMode === "request" ? "Submit for approval" : "Update schedule";
+  $("schedNote").textContent = schedMode === "request"
+    ? "Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Set out the week you would like — nothing changes until an admin approves it."
+    : "Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.";
+  show($("schedWhyField"), schedMode === "request");
+  $("schedWhy").value = "";
   $("schedErr").textContent = "";
   var wrap = $("schedRows");
   wrap.innerHTML = "";
@@ -1996,11 +2179,11 @@ function openSchedDialog(su){
         '<option value="flex">Flexible hours</option>' +
       '</select>' +
       '<span class="sched-times">' +
-        '<input type="time" class="t1" aria-label="' + DAY_NAMES[d] + ' start"> ' +
-        '<input type="time" class="t2" aria-label="' + DAY_NAMES[d] + ' end"> ' +
+        '<input type="text" maxlength="12" placeholder="9:00 AM" class="t1" aria-label="' + DAY_NAMES[d] + ' start"> ' +
+        '<input type="text" maxlength="12" placeholder="6:00 PM" class="t2" aria-label="' + DAY_NAMES[d] + ' end"> ' +
         '<span class="sched-plus muted">+</span> ' +
-        '<input type="time" class="t3" aria-label="' + DAY_NAMES[d] + ' second shift start"> ' +
-        '<input type="time" class="t4" aria-label="' + DAY_NAMES[d] + ' second shift end">' +
+        '<input type="text" maxlength="12" placeholder="1:00 PM" class="t3" aria-label="' + DAY_NAMES[d] + ' second shift start"> ' +
+        '<input type="text" maxlength="12" placeholder="5:00 PM" class="t4" aria-label="' + DAY_NAMES[d] + ' second shift end">' +
       '</span>';
     row.querySelector(".sched-kind").addEventListener("change", function(){ row.dataset.kind = this.value; });
     wrap.appendChild(row);
@@ -2015,7 +2198,10 @@ $("schedOff").addEventListener("click", function(){
 });
 $("schedCancel").addEventListener("click", function(){ schedDlg.close(); });
 $("schedSave").addEventListener("click", function(){
-  if(!schedTarget) return;
+  /* Look the person up again right now: the background sync may have
+     replaced the record this dialog was opened from. */
+  var target = state.users.filter(function(x){ return x.id === schedTargetId; })[0];
+  if(!target){ schedDlg.close(); toast("That person is no longer on the list."); return; }
   var next = {}, bad = null, any = false;
   eachSchedRow(function(row){
     var res = readSchedRow(row);
@@ -2024,13 +2210,38 @@ $("schedSave").addEventListener("click", function(){
     next[res.d] = res.day;
   });
   if(bad){
-    $("schedErr").textContent = "Couldn't read " + bad + " — pick both times (a split shift needs all four).";
+    $("schedErr").textContent = "Couldn't read " + bad + " — use times like 9:00 AM (a split shift needs all four).";
     return;
   }
-  schedTarget.sched = any ? next : null;
+  var wanted = any ? next : null;
+
+  /* staff ask for the change; nothing on file moves until an admin approves it */
+  if(schedMode === "request"){
+    var why = $("schedWhy").value.trim();
+    if(why.length < 3){ $("schedErr").textContent = "Tell the admin why you need this change."; return; }
+    if(pendingSchedReq(target.id)){
+      $("schedErr").textContent = "You already have a schedule request waiting for review.";
+      return;
+    }
+    state.requests.push({
+      id: nextId("r"), userId: target.id, kind: "schedule",
+      sched: wanted, curSched: target.sched || null, note: why,
+      status: "pending", createdAt: new Date().toISOString(),
+      resolvedAt: null, resolvedBy: "", resolverNote: "", seen: true
+    });
+    schedDlg.close();
+    save(); render();
+    toast("Schedule request sent — an admin approves it before anything changes.");
+    return;
+  }
+
+  var changes = schedChanges(target.sched || null, wanted);
+  if(!changes.length){ schedDlg.close(); toast("Nothing changed on that schedule."); return; }
+  target.sched = wanted;
+  logEdit(null, "schedule", changes, { userId: target.id, person: target.name, date: null });
   schedDlg.close();
   save(); render();
-  toast("Schedule saved for " + schedTarget.name + ".");
+  toast("Schedule updated for " + target.name + " — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
 });
 
 /* ---------------- go ---------------- */
