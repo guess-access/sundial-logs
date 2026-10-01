@@ -10,6 +10,7 @@
 const store = require("../../lib/store.js");
 
 exports.handler = async (event) => {
+  store.connect(event);
   if (event.httpMethod !== "POST") return store.reply(405, { error: "Use POST." });
   try {
     const patch = store.readBody(event);
