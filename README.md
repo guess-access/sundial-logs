@@ -38,6 +38,18 @@ every screen (sign-in and app).
   history, and may not approve or decline their own request. Only an admin can change
   accounts, passcodes or schedules.
 
+## More than one admin
+- **Team → Make admin** promotes somebody after a confirmation that spells out what an
+  admin can do; the row then offers **Make staff** to take it away again. Either way the
+  outcome is logged as `name is now an admin — logged as @username`.
+- Creating a person, changing a role and resetting a passcode all **wait for the server**
+  before they claim success. If the save has not landed the dialog says so plainly
+  (`Not saved yet — … isn't on the server, so they can't sign in`) instead of announcing a
+  login nobody can use, and the change retries by itself while the tab stays open.
+- The server enforces the same thing: only an admin may change accounts, passcodes or
+  roles, and it refuses to demote, switch off or delete the last active admin. A CSV
+  import can create an admin with `role` = `admin`, but can never demote one.
+
 ## What a staff account cannot do
 - **Change a passcode** — the button is admin-only and the server refuses; an admin resets
   it from **Team → Reset passcode**.

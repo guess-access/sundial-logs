@@ -580,18 +580,22 @@ function step(){
   return req.then(function(res){
     failed = false;
     if(mergeServer(res, sent)) render();
-  }, onApiError);
+    return true;
+  }, function(e){ onApiError(e); return false; });
 }
+// Resolves true only when the server has taken the changes, so anything that
+// hands out a passcode can wait for a real answer instead of guessing.
 function syncNow(){
-  if(!auth) return Promise.resolve();
+  if(!auth) return Promise.resolve(true);
   if(runP){ again = true; return runP; }
-  runP = step().then(function(){
+  runP = step().then(function(ok){
     runP = null;
     if(again){ again = false; return syncNow(); }
+    return ok;
   });
   return runP;
 }
-function save(){ failed = false; syncNow(); }
+function save(){ failed = false; return syncNow(); }
 
 setInterval(function(){ if(auth && !document.hidden) syncNow(); }, 30000);
 document.addEventListener("visibilitychange", function(){ if(!document.hidden && auth) syncNow(); });
@@ -1280,6 +1284,9 @@ function renderTeam(){
       "<td>" + (!u.active ? '<span class="muted">switched off</span>' : e ? '<span style="color:var(--signal)">on the clock</span>' : '<span class="muted">off</span>') + "</td>" +
       '<td style="text-align:right;white-space:nowrap">' +
         '<button class="btn btn-quiet" data-sched="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">Schedule</button> ' +
+        (u.id === (currentUser() || {}).id ? "" :
+          '<button class="btn btn-quiet" data-role="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">' +
+          (u.role === "admin" ? "Make staff" : "Make admin") + "</button> ") +
         '<button class="btn btn-quiet" data-reset="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">Reset passcode</button> ' +
         '<button class="btn ' + (u.active ? "btn-danger" : "btn-quiet") + '" data-toggle="' + esc(u.id) + '" style="padding:4px 10px;font-size:.85rem">' +
         (u.active ? "Switch off" : "Switch on") + "</button></td>";
@@ -1817,8 +1824,12 @@ $("btnPin").addEventListener("click", function(){
       if(h !== u.hash) return "That's not your current passcode.";
       var salt = randSalt();
       return hashPin(v.a, salt).then(function(nh){
-        u.salt = salt; u.hash = nh; save(); toast("Passcode changed.");
-        return null;
+        u.salt = salt; u.hash = nh;
+        return save().then(function(ok){
+          if(ok){ toast("Passcode changed."); return null; }
+          return "Not saved yet — your old passcode is still the working one. " +
+                 "Keep this tab open; the change retries by itself.";
+        });
       });
     });
   });
@@ -2056,12 +2067,22 @@ $("tAdd").addEventListener("click", function(){
     if(state.users.some(function(x){ return x.username === uname; })) return "That username is taken.";
     if(v.pin.length < 4) return "The passcode needs at least 4 characters.";
     var salt = randSalt();
-    hashPin(v.pin, salt).then(function(h){
-      state.users.push({ id: nextId("u"), username: uname, name: v.name.trim(), salt: salt, hash: h,
-        role: "staff", createdAt: new Date().toISOString(), active: true });
-      save(); render(); toast(v.name.trim() + " can now sign in.");
+    /* wait for the server: telling the admin "can now sign in" before the save
+       has landed is how a person ends up with a login nobody can use */
+    return hashPin(v.pin, salt).then(function(h){
+      var u = { id: nextId("u"), username: uname, name: v.name.trim(), salt: salt, hash: h,
+        role: "staff", createdAt: new Date().toISOString(), active: true };
+      state.users.push(u);
+      render();
+      return save().then(function(ok){
+        if(ok && base.users && base.users[u.id] !== undefined){
+          toast(u.name + " can now sign in.");
+          return null;
+        }
+        return "Not saved yet — " + u.name + " isn't on the server, so they can't sign in. " +
+               "Keep this tab open (it retries by itself) and check the Team list before you hand over the passcode.";
+      });
     });
-    return null;
   });
 });
 $("tExport").addEventListener("click", function(){
@@ -2085,7 +2106,30 @@ $("reqList").addEventListener("click", function(ev){
 $("teamBody").addEventListener("click", function(ev){
   var t = ev.target;
   if(!t.getAttribute) return;
-  var rid = t.getAttribute("data-reset"), tid = t.getAttribute("data-toggle"), sid = t.getAttribute("data-sched");
+  var rid = t.getAttribute("data-reset"), tid = t.getAttribute("data-toggle"), sid = t.getAttribute("data-sched"),
+      roid = t.getAttribute("data-role");
+  if(roid){
+    var ru = state.users.filter(function(x){ return x.id === roid; })[0];
+    if(!ru) return;
+    var toAdmin = ru.role !== "admin";
+    confirmAsk(toAdmin ? "Make " + ru.name + " an admin?" : "Take admin away from " + ru.name + "?",
+      toAdmin
+        ? ru.name + " will be able to see everyone's timesheet, add and edit people, reset passcodes and approve requests — the same as you."
+        : ru.name + " keeps their own timesheet and requests, but won't be able to manage people, passcodes or approvals.",
+      toAdmin ? "Make admin" : "Make staff").then(function(yes){
+      if(!yes) return;
+      ru.role = toAdmin ? "admin" : "staff";
+      save().then(function(ok){
+        render();
+        if(ok){ toast(ru.name + (toAdmin ? " is now an admin" : " is now staff") +
+                      " — logged as @" + currentUser().username + "."); return; }
+        if(!failed) return; /* the server said why and rolled it back */
+        toast("Not saved yet — " + ru.name + " is still " + (toAdmin ? "staff" : "an admin") +
+              ". Keep this tab open; it retries by itself.");
+      });
+    });
+    return;
+  }
   if(sid){
     var su = state.users.filter(function(x){ return x.id === sid; })[0];
     if(su) openSchedDialog(su);
@@ -2096,10 +2140,14 @@ $("teamBody").addEventListener("click", function(ev){
     ask("Reset passcode for " + user.name, [{ label:"New passcode", key:"pin", type:"password" }], function(v){
       if(v.pin.length < 4) return "Use at least 4 characters.";
       var salt = randSalt();
-      hashPin(v.pin, salt).then(function(h){
-        user.salt = salt; user.hash = h; save(); toast("Passcode reset. Tell them to change it.");
+      return hashPin(v.pin, salt).then(function(h){
+        user.salt = salt; user.hash = h;
+        return save().then(function(ok){
+          if(ok){ toast("Passcode reset. Tell them to change it."); return null; }
+          return "Not saved yet — their old passcode is still the working one. " +
+                 "Keep this tab open; the change retries by itself.";
+        });
       });
-      return null;
     });
   }
   if(tid){
