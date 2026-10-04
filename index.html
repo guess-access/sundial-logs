@@ -7,6 +7,7 @@
      Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Prestige Dealer Alliance Timelogs</title>
+<meta name="description" content="Prestige Dealer Alliance Timelogs — clock in and out, weekly timesheets, schedules and shift approvals, all in US Eastern time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -51,7 +52,7 @@ body{
 button{font:inherit;color:inherit}
 input,select{font:inherit}
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
-.wrap{width:100%;max-width:1040px;margin:0 auto;padding:20px 18px 64px}
+.wrap{width:100%;max-width:1440px;margin:0 auto;padding:20px 18px 64px}
 
 /* ---------- shared bits ---------- */
 .readout{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
@@ -149,6 +150,15 @@ input,select{font:inherit}
 .empty{color:var(--muted);font-size:.93rem;margin:0;padding:6px 0}
 .scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:600px}
+#sheetTable{min-width:900px}
+/* one day, one status: on time, late, early out, absent */
+.st{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:500;
+  white-space:nowrap;border:1px solid transparent}
+.st-ok{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
+.st-late,.st-early{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
+.st-absent{color:var(--alert);border-color:#5A2A26;background:#2A1012}
+.st-open{color:var(--lunch);border-color:#3A3A6E;background:#191A38}
+.st-off{color:var(--muted);border-color:var(--line-soft)}
 th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line-soft);white-space:nowrap}
 th{color:var(--muted);font-weight:500;font-size:.85rem;border-top:0}
 td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
@@ -250,6 +260,28 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 .sched-row[data-kind="fixed"] .sched-plus{display:none}
 
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+/* ---------- phones & tablets: single column, scrollable tables, no zoom jump ---------- */
+@media (max-width:760px){
+  .wrap{padding:14px 12px 56px}
+  .block,.status,.auth-card{padding:15px}
+  .topbar{gap:10px}
+  .tab{padding:7px 12px;font-size:.9rem}
+  .nav-leave{margin-left:0}
+  .toolbar{gap:8px}
+  .toolbar .field{flex:1 1 100%}
+  .toolbar .btn{flex:1 1 auto}
+  .totals{gap:16px;margin-bottom:14px}
+  .totals div strong{font-size:1.25rem}
+  .elapsed{font-size:2.1rem}
+  .punches li{flex-wrap:wrap;gap:2px 10px}
+  table{font-size:.88rem}
+  .brand-logo{height:clamp(56px,16vw,84px)}
+  /* 16px stops iOS/Android zooming the page whenever a field gets focus */
+  input,select,textarea,.field input,.field select,.sched-kind,.sched-times input,
+  #schedDlg textarea,#impDlg textarea,#actBody textarea{font-size:16px}
+  #schedDlg,#actDlg,#impDlg{width:96vw;max-height:92vh}
+}
 </style>
 </head>
 <body>
@@ -353,16 +385,17 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
         </div>
         <div class="totals">
           <div><span>Days worked</span><strong id="tDays">0</strong></div>
+          <div><span>Absent</span><strong id="tAbsent">0</strong></div>
           <div><span>Break time</span><strong id="tBreak">0:00</strong></div>
           <div><span>Total worked</span><strong id="tWorked">0:00</strong></div>
         </div>
         <div class="scroller">
           <table id="sheetTable">
-            <thead><tr><th>Date</th><th>Clock in</th><th>Clock out</th><th class="num">Break 1</th><th class="num">Break 2</th><th class="num">Lunch</th><th class="num">Worked</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Status</th><th>Clock in</th><th>Clock out</th><th class="num">Break 1</th><th class="num">Break 2</th><th class="num">Lunch</th><th class="num">Worked</th><th></th></tr></thead>
             <tbody id="sheetBody"></tbody>
           </table>
         </div>
-        <p class="empty hidden" id="sheetEmpty">No shifts in this range.</p>
+        <p class="empty hidden" id="sheetEmpty">No days in this range.</p>
       </div>
 
       <!-- change log: who edited these rows, always at the bottom of the sheet -->
@@ -412,6 +445,9 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 <dialog id="schedDlg">
   <h2 id="schedTitle">Schedule</h2>
   <p class="note" id="schedNote" style="margin:-8px 0 14px">Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.</p>
+  <label class="field" id="schedFromField" style="margin:0 0 14px"><span>Schedule effective from (the date it starts — schedules often change weekly)</span>
+    <input type="date" id="schedFrom">
+  </label>
   <div class="sched-quick">
     <button class="btn btn-quiet" id="schedWeek" type="button">Copy Monday to weekdays</button>
     <button class="btn btn-quiet" id="schedAll" type="button">Copy Monday to every day</button>
@@ -432,10 +468,11 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
   <h2>Import people and schedules</h2>
   <p class="note" style="margin:0 0 14px">
     One person per row, in this column order — a header row is optional:<br>
-    <code class="readout" style="color:var(--paper);display:block;margin-top:8px;font-size:.82rem;line-height:1.7">name, username, passcode, role, mon, tue, wed, thu, fri, sat, sun</code>
+    <code class="readout" style="color:var(--paper);display:block;margin-top:8px;font-size:.82rem;line-height:1.7">name, username, passcode, role, mon, tue, wed, thu, fri, sat, sun, schedule_from</code>
     Each day is a shift like <code class="readout">9:00 AM-6:00 PM</code> (Eastern) or <code class="readout">10:00 PM-6:00 AM</code>, or <code class="readout">off</code> / <code class="readout">Rest day</code> for a day off.
     Two shifts in one cell keep both windows, e.g. <code class="readout">8:00 AM-12:00 PM + 1:00 PM-5:00 PM</code>. Write <code class="readout">Flexible</code> for a day with no fixed hours.
     Leave every day blank (or write <code class="readout">Executive</code>) for no fixed schedule. Comma or tab separated both work.
+    <code class="readout">schedule_from</code> is optional — it is the date the roster starts (like <code class="readout">2026-10-05</code>), so weekly changes can be kept one per week; leave it out and today's date is used.
     Leave the passcode blank and one gets generated. An existing username is updated, not duplicated. Every time on this site is Eastern (EST).
   </p>
   <input type="file" id="impFile" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" style="margin-bottom:10px">
@@ -789,9 +826,46 @@ function parseDayCell(raw){
   // a split shift keeps both windows instead of being flattened
   return { kind:"range", range:{ start:rs[0].start, end:rs[rs.length-1].end, windows:rs }, split:rs };
 }
+/* Schedules carry the date they take effect — rosters often change week to week,
+   so the sheet has to know which one applied on a given day:
+   u.schedules = [{ from:"2026-10-05", days:{1:{start,end},...} }, ...] oldest first.
+   u.sched keeps mirroring the newest set, so older records, exports and imports
+   that were written before dates existed still behave exactly as they did. */
+function schedEntries(u){
+  if(!u || !Array.isArray(u.schedules)) return [];
+  return u.schedules.filter(function(s){ return s && s.from; })
+    .sort(function(a, b){ return a.from < b.from ? -1 : a.from > b.from ? 1 : 0; });
+}
+function currentSchedDate(u){
+  var list = schedEntries(u);
+  return list.length ? list[list.length - 1].from : "";
+}
+function schedDaysFor(u, key){
+  if(!u) return null;
+  var list = schedEntries(u), k = String(key || ""), seen = false, best = null;
+  for(var i = 0; i < list.length; i++){
+    if(list[i].from <= k){ seen = true; best = list[i]; }
+  }
+  if(seen) return best.days || null;   /* a dated roster covers this day */
+  return u.sched || null;              /* recorded before dates existed */
+}
+function schedForDay(u, key){
+  var days = schedDaysFor(u, key);
+  if(!days) return { roster:false, day:null };
+  return { roster:true, day: days[keyToDate(key).getDay()] || null };
+}
+function setSchedule(u, days, from){
+  var when = /^\d{4}-\d{2}-\d{2}$/.test(String(from || "")) ? from : dayKey(new Date());
+  var list = schedEntries(u).filter(function(s){ return s.from !== when; });
+  list.push({ from: when, days: days || null });
+  list.sort(function(a, b){ return a.from < b.from ? -1 : a.from > b.from ? 1 : 0; });
+  u.schedules = list;
+  u.sched = list.length ? (list[list.length - 1].days || null) : null;
+}
 function schedOf(u, key){
-  if(!u || !u.sched) return null;
-  return u.sched[keyToDate(key).getDay()] || null;
+  var days = schedDaysFor(u, key);
+  if(!days) return null;
+  return days[keyToDate(key).getDay()] || null;
 }
 /* A day can be: null (rest day), {flex:true} (no fixed hours), one window
    {start,end}, or a split shift {start,end,windows:[{start,end},...]}.
@@ -814,7 +888,10 @@ function fmtRange(r){
   var txt = schedWindows(r).map(function(w){ return fmtHM(w.start) + " – " + fmtHM(w.end); }).join("  +  ");
   return txt + (r.end <= r.start ? " (next day)" : "");
 }
-function schedSummary(u){
+function schedSummary(u, from){
+  if(typeof from === "undefined") from = currentSchedDate(u);
+  var fromHtml = from ? '<br><span class="muted" style="font-size:.84em">effective ' +
+                        esc(fmtShortDate(from)) + '</span>' : "";
   if(!u.sched) return '<span class="muted">not set</span>';
   var groups = {}, order = [];
   [1,2,3,4,5,6,0].forEach(function(d){
@@ -824,14 +901,100 @@ function schedSummary(u){
     if(!groups[tag]){ groups[tag] = []; order.push(tag); }
     groups[tag].push(DAY_NAMES[d]);
   });
-  if(!order.length) return '<span class="muted">rest days only</span>';
-  return order.map(function(tag){ return esc(groups[tag].join(" ") + "  " + tag); }).join("<br>");
+  if(!order.length) return '<span class="muted">rest days only</span>' + fromHtml;
+  return order.map(function(tag){ return esc(groups[tag].join(" ") + "  " + tag); }).join("<br>") + fromHtml;
 }
 function lateMins(e, u){
   var r = schedOf(u, e.date);
   if(!r || r.flex) return null;   // a flexible day can't be late
   return minsOfDay(new Date(e.inAt)) - r.start;
 }
+
+/* ---------------- one row per day ----------------
+   The sheet is a day-by-day report: every date in the range is a line, weekends
+   included whether or not anybody is rostered, and each line carries a status —
+   Absent (no clock in 4 hours after the shift was due), Late (mm:ss),
+   Early logout (mm:ss), On time, Rest day or Still clocked in. */
+var ABSENT_AFTER = 4 * 3600000;
+function fmtMMSS(ms){
+  if(!ms || ms < 0) ms = 0;
+  var s = Math.floor(ms / 1000);
+  return pad(Math.floor(s / 60)) + ":" + pad(s % 60);
+}
+function schedSpan(r){
+  if(!r || r.flex) return null;
+  var ws = schedWindows(r);
+  if(!ws.length) return null;
+  return { start: ws[0].start, end: ws[ws.length - 1].end };
+}
+function dayStatus(u, key, entries, nowMs){
+  var f = schedForDay(u, key), sc = f.day;
+  if(!f.roster){
+    return entries.length ? { code:"nosched", cls:"st-late", label:"Worked — no schedule" }
+                          : { code:"nosched", cls:"st-off", label:"No schedule" };
+  }
+  if(!sc){
+    return entries.length ? { code:"rest", cls:"st-late", label:"Worked on a rest day" }
+                          : { code:"rest", cls:"st-off", label:"Rest day" };
+  }
+  if(sc.flex){
+    return entries.length ? { code:"present", cls:"st-ok", label:"Present — flexible hours" }
+                          : { code:"flex", cls:"st-off", label:"Flexible hours" };
+  }
+  var sp = schedSpan(sc);
+  if(!sp) return { code:"nosched", cls:"st-off", label:"No schedule" };
+  var startMs = etToUtc(key, sp.start).getTime();
+  /* a shift that runs past midnight ends the next day */
+  var endMs = etToUtc(key, sp.end <= sp.start ? sp.end + 1440 : sp.end).getTime();
+
+  if(!entries.length){
+    if(nowMs < startMs) return { code:"due", cls:"st-off", label:"Expected " + fmtHM(sp.start) };
+    if(nowMs >= startMs + ABSENT_AFTER) return { code:"absent", cls:"st-absent", label:"Absent" };
+    return { code:"waiting", cls:"st-off", label:"Not clocked in yet" };
+  }
+
+  var inMs = Math.min.apply(null, entries.map(function(e){ return new Date(e.inAt).getTime(); }));
+  var outs = entries.filter(function(e){ return e.outAt; }).map(function(e){ return new Date(e.outAt).getTime(); });
+  var outMs = outs.length ? Math.max.apply(null, outs) : null;
+  var open = outs.length < entries.length;
+  var lateMs = inMs - startMs;
+  var earlyMs = (outMs !== null && outMs < endMs) ? endMs - outMs : 0;
+  var parts = [], cls = "st-ok", code = "ontime";
+  if(lateMs > 0){ parts.push("Late (" + fmtMMSS(lateMs) + ")"); cls = "st-late"; code = "late"; }
+  if(open){ parts.push("Still clocked in"); cls = "st-open"; code = "open"; }
+  else if(earlyMs > 0){ parts.push("Early logout (" + fmtMMSS(earlyMs) + ")"); if(cls === "st-ok"){ cls = "st-early"; code = "early"; } }
+  if(!parts.length) parts.push("On time");
+  return { code:code, cls:cls, label:parts.join(" · "),
+           lateMs: lateMs > 0 ? lateMs : 0, earlyMs: earlyMs, startMs:startMs, endMs:endMs };
+}
+function dayRows(uid, from, to, cap){
+  var out = [];
+  if(!from || !to) return out;
+  if(to < from){ var sw = from; from = to; to = sw; }
+  cap = cap || 400;
+  var u = state.users.filter(function(x){ return x.id === uid; })[0] || userOf(uid);
+  var byDate = {};
+  entriesFor(uid).forEach(function(e){
+    if(e.date < from || e.date > to) return;
+    (byDate[e.date] = byDate[e.date] || []).push(e);
+  });
+  var d = keyToDate(from), n = 0;
+  while(n < cap){
+    var key = localKey(d);
+    if(key > to) break;
+    var es = (byDate[key] || []).slice().sort(function(a, b){
+      return new Date(a.inAt) - new Date(b.inAt);
+    });
+    out.push({ userId:uid, u:u, date:key, entries:es, status:dayStatus(u, key, es, Date.now()) });
+    d.setDate(d.getDate() + 1);
+    n++;
+  }
+  return out;
+}
+function statusHtml(st){
+  return '<span class="st ' + st.cls + '">' + esc(st.label) + "</span>";
+}
+
 function etToUtc(dateKey, mins){
   var p = dateKey.split("-");
   var h = Math.floor(mins/60), mi = mins%60;
@@ -1186,46 +1349,62 @@ function renderSheet(me){
 
   var from = $("sFrom").value, to = $("sTo").value;
   if(!from || !to) return;
-  var list = rangeEntries(target.id, from, to);
+  if(to < from){ var swapK = from; from = to; to = swapK; }
+  var rows = dayRows(target.id, from, to);
   var body = $("sheetBody");
   body.innerHTML = "";
-  var totW = 0, totB = 0, days = {};
-  list.forEach(function(e){
-    var ref = e.outAt ? new Date(e.outAt).getTime() : Date.now();
-    var w = e.outAt ? workedMs(e) : 0;
-    var bm = breakMs(e, ref);
-    if(e.outAt){ totW += w; totB += bm; days[e.date] = 1; }
-    var cells = PAUSES.map(function(p){
-      var ms = pauseMs(e, p.key, ref);
+  var totW = 0, totB = 0, days = {}, absent = 0;
+  rows.forEach(function(row){
+    var es = row.entries, first = es[0] || null;
+    var workMs = 0, open = false;
+    var pauseTot = PAUSES.map(function(){ return 0; });
+    es.forEach(function(x, i){
+      var ref = x.outAt ? new Date(x.outAt).getTime() : Date.now();
+      if(x.outAt){ workMs += workedMs(x); totW += workedMs(x); days[row.date] = 1; }
+      else open = true;
+      totB += breakMs(x, ref);
+      PAUSES.forEach(function(p, j){ pauseTot[j] += pauseMs(x, p.key, ref); });
+    });
+    if(row.status.code === "absent") absent++;
+    var cells = PAUSES.map(function(p, j){
+      var ms = pauseTot[j];
       return '<td class="num">' + (ms ? esc(fmtDur(ms)) : '<span class="muted">—</span>') + "</td>";
     }).join("");
 
-    var actionCell;
-    if(isAdmin){
-      actionCell = '<button class="btn btn-quiet" data-edit="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Edit</button>';
-    } else {
-      var pending = pendingReqFor(e.id);
-      var last = lastReqFor(e.id);
-      if(pending) actionCell = '<span class="reqtag pending">Review pending</span>';
-      else if(last && last.status === "declined") actionCell = '<span class="reqtag declined">Declined</span> <button class="btn btn-quiet" data-req="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Request again</button>';
-      else actionCell = '<button class="btn btn-quiet" data-req="' + esc(e.id) + '" style="padding:4px 10px;font-size:.85rem">Request edit</button>';
+    var actionCell = '<span class="muted">—</span>';
+    if(first){
+      if(isAdmin){
+        actionCell = '<button class="btn btn-quiet" data-edit="' + esc(first.id) + '" style="padding:4px 10px;font-size:.85rem">Edit</button>';
+      } else {
+        var pending = pendingReqFor(first.id);
+        var last = lastReqFor(first.id);
+        if(pending) actionCell = '<span class="reqtag pending">Review pending</span>';
+        else if(last && last.status === "declined") actionCell = '<span class="reqtag declined">Declined</span> <button class="btn btn-quiet" data-req="' + esc(first.id) + '" style="padding:4px 10px;font-size:.85rem">Request again</button>';
+        else actionCell = '<button class="btn btn-quiet" data-req="' + esc(first.id) + '" style="padding:4px 10px;font-size:.85rem">Request edit</button>';
+      }
     }
 
     var tr = document.createElement("tr");
-    var lastEdit = auditForEntry(e.id)[0];
+    var lastEdit = first ? auditForEntry(first.id)[0] : null;
     var editedTag = lastEdit && lastEdit.by
       ? '<span class="edited-by">✎ edited by @' + esc(lastEdit.by) + '</span>' : "";
-    tr.innerHTML = "<td>" + esc(fmtShortDate(e.date)) + editedTag + "</td>" +
-      "<td>" + esc(fmtClock(new Date(e.inAt))) + "</td>" +
-      "<td>" + (e.outAt ? esc(fmtClock(new Date(e.outAt))) : '<span class="muted">still open</span>') + "</td>" +
+    tr.innerHTML = "<td>" + esc(fmtShortDate(row.date)) + editedTag + "</td>" +
+      "<td>" + statusHtml(row.status) + "</td>" +
+      "<td>" + (first ? esc(fmtClock(new Date(first.inAt))) : '<span class="muted">—</span>') + "</td>" +
+      "<td>" + (first ? (first.outAt ? esc(fmtClock(new Date(first.outAt))) : '<span class="muted">still open</span>') : '<span class="muted">—</span>') + "</td>" +
       cells +
-      '<td class="num">' + (e.outAt ? esc(fmtDur(w)) : '<span class="muted">—</span>') + "</td>" +
+      '<td class="num">' + (workMs ? esc(fmtDur(workMs)) : '<span class="muted">—</span>') + "</td>" +
       '<td style="text-align:right;white-space:nowrap">' + actionCell + "</td>";
     body.appendChild(tr);
   });
-  show($("sheetEmpty"), list.length === 0);
-  show($("sheetTable"), list.length > 0);
+  var clipped = rows.length >= 400;
+  $("sheetEmpty").textContent = clipped
+    ? "Only the first 400 days of that range are listed — choose a shorter range to see the rest."
+    : "No days in this range.";
+  show($("sheetEmpty"), rows.length === 0 || clipped);
+  show($("sheetTable"), rows.length > 0);
   $("tDays").textContent = Object.keys(days).length;
+  $("tAbsent").textContent = absent;
   $("tBreak").textContent = fmtDur(totB);
   $("tWorked").textContent = fmtDur(totW);
 
@@ -1547,10 +1726,10 @@ function reviewSchedRequestDialog(reqId){
   var u = userOf(r.userId);
   var me = currentUser();
   openAct("Schedule request — " + u.name,
-    '<p class="note" style="margin:0 0 6px">On file now</p>' +
-    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.curSched || null }) + '</p>' +
-    '<p class="note" style="margin:0 0 6px">Requested</p>' +
-    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.sched || null }) + '</p>' +
+    '<p class="note" style="margin:0 0 6px">On file now' + (r.curFrom ? " · from " + esc(fmtShortDate(r.curFrom)) : "") + '</p>' +
+    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.curSched || null }, r.curFrom || "") + '</p>' +
+    '<p class="note" style="margin:0 0 6px">Requested' + (r.from ? " · effective " + esc(fmtShortDate(r.from)) : "") + '</p>' +
+    '<p style="margin:0 0 14px">' + schedSummary({ sched: r.sched || null }, r.from || "") + '</p>' +
     (r.note ? '<p class="note" style="margin:0 0 14px">' + esc(u.name) + ' says: “' + esc(r.note) + '”</p>' : '') +
     '<label class="field"><span>Note back to ' + esc(u.name) + ' (optional)</span><textarea id="revNote" rows="2"></textarea></label>' +
     '<p class="note" style="margin:0">Approving saves the schedule and writes your username — ' +
@@ -1576,10 +1755,11 @@ function reviewSchedRequestDialog(reqId){
           var target = state.users.filter(function(x){ return x.id === req.userId; })[0];
           if(!target) return "That person is no longer on the list.";
           var who = currentUser();
+          var reqFrom = /^\d{4}-\d{2}-\d{2}$/.test(String(req.from || "")) ? req.from : dayKey(new Date());
           var changes = schedChanges(target.sched || null, req.sched || null);
           if(!changes.length) changes.push("schedule confirmed — nothing was different");
-          changes.unshift("approved @" + target.username + "'s schedule request");
-          target.sched = req.sched || null;
+          changes.unshift("approved @" + target.username + "'s schedule request (effective " + fmtShortDate(reqFrom) + ")");
+          setSchedule(target, req.sched || null, reqFrom);
           logEdit(null, "sched-approve", changes, { userId: target.id, person: target.name, date: null });
           req.status = "approved"; req.resolvedAt = new Date().toISOString();
           req.resolvedBy = who ? who.username : ""; req.seen = false;
@@ -1717,28 +1897,40 @@ function download(name, text){
 function userOf(id){
   return state.users.filter(function(x){ return x.id === id; })[0] || { name:"(removed account)", username:"" };
 }
-function toCsv(entries){
-  var head = ["Name","Username","Date","Scheduled in","Scheduled out","Clock in","Clock out","Late (min)"];
+function toCsv(dayList){
+  var head = ["Name","Username","Date","Day","Scheduled in","Scheduled out","Clock in","Clock out",
+              "Late (min)","Early out (min)"];
   PAUSES.forEach(function(p){ head.push(p.label + " (min)"); });
   head.push("Total break (min)","Worked (hours)","Status","Time zone","Edited by");
   var rows = [head];
-  entries.forEach(function(e){
-    var u = userOf(e.userId);
-    var ref = e.outAt ? new Date(e.outAt).getTime() : Date.now();
-    var sc = schedOf(u, e.date);
-    var fixed = !!sc && !sc.flex;
-    var late = lateMins(e, u);
-    var r = [ u.name, u.username, e.date,
-      fixed ? fmtHM(sc.start) : "", fixed ? fmtHM(sc.end) : "",
-      fmtClock(new Date(e.inAt)),
-      e.outAt ? fmtClock(new Date(e.outAt)) : "",
-      late === null ? "" : late ];
-    PAUSES.forEach(function(p){ r.push(Math.round(pauseMs(e, p.key, ref)/60000)); });
-    r.push(Math.round(breakMs(e, ref)/60000));
-    r.push(e.outAt ? decHours(workedMs(e)) : "");
-    r.push(e.outAt ? "closed" : "still open");
+  dayList.forEach(function(row){
+    var u = row.u || userOf(row.userId);
+    var es = row.entries, first = es[0] || null;
+    var sc = schedOf(u, row.date), sp = schedSpan(sc);
+    var pauses = PAUSES.map(function(){ return 0; });
+    var brk = 0, work = 0, open = false, editors = {};
+    es.forEach(function(e){
+      var ref = e.outAt ? new Date(e.outAt).getTime() : Date.now();
+      if(e.outAt) work += workedMs(e); else open = true;
+      brk += breakMs(e, ref);
+      PAUSES.forEach(function(p, j){ pauses[j] += pauseMs(e, p.key, ref); });
+      var ed = lastEditorOf(e.id);
+      if(ed) editors[ed] = 1;
+    });
+    var outs = es.filter(function(e){ return e.outAt; });
+    var st = row.status || dayStatus(u, row.date, es, Date.now());
+    var r = [ u.name, u.username, row.date, DAY_NAMES[keyToDate(row.date).getDay()],
+      sp ? fmtHM(sp.start) : "", sp ? fmtHM(sp.end) : "",
+      first ? fmtClock(new Date(first.inAt)) : "",
+      outs.length ? fmtClock(new Date(outs[outs.length - 1].outAt)) : "",
+      st.lateMs ? Math.round(st.lateMs / 60000) : "",
+      st.earlyMs ? Math.round(st.earlyMs / 60000) : "" ];
+    pauses.forEach(function(v){ r.push(v ? Math.round(v / 60000) : 0); });
+    r.push(Math.round(brk / 60000));
+    r.push(work && !open ? decHours(work) : "");
+    r.push(st ? st.label : "");
     r.push("EST");
-    r.push(lastEditorOf(e.id));
+    r.push(Object.keys(editors).join("; "));
     rows.push(r);
   });
   return rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n");
@@ -1859,9 +2051,9 @@ function sheetTarget(){
 $("sPerson").addEventListener("change", render);
 $("sExport").addEventListener("click", function(){
   var t = sheetTarget();
-  var list = rangeEntries(t.id, $("sFrom").value, $("sTo").value);
-  if(!list.length){ toast("Nothing to export in this range."); return; }
-  download("timesheet-" + t.username + "-" + $("sFrom").value + ".csv", toCsv(list));
+  var rows = dayRows(t.id, $("sFrom").value, $("sTo").value, 4000);
+  if(!rows.length){ toast("Nothing to export in this range."); return; }
+  download("timesheet-" + t.username + "-" + $("sFrom").value + ".csv", toCsv(rows));
 });
 $("sLog").addEventListener("click", function(){
   var t = sheetTarget();
@@ -1957,6 +2149,13 @@ function runImport(text){
     if(uname !== rawUname.toLowerCase()) notes.push('Row ' + line + ': username "' + rawUname + '" saved as ' + uname + ' (no spaces allowed)');
     var pin = get(r, "passcode");
     var role = get(r, "role").toLowerCase() === "admin" ? "admin" : "staff";
+    /* optional: the day this roster starts. Schedules change weekly, so the
+       date is what tells the timesheet which week it is judging. */
+    var rawFrom = get(r, "schedule_from");
+    var schedFrom = /^\d{4}-\d{2}-\d{2}$/.test(rawFrom) ? rawFrom : dayKey(new Date());
+    if(rawFrom && schedFrom !== rawFrom){
+      notes.push('Row ' + line + ': schedule_from "' + rawFrom + '" isn\'t a date like 2026-10-05 — using ' + schedFrom + ' instead');
+    }
 
     if(!validUsername(uname)){
       log.push({ bad:true, text:"Row " + line + ": \"" + (uname || name || "blank") + "\" isn't a usable username (3-20 characters, letters, numbers, dot, dash, underscore)." });
@@ -1988,7 +2187,7 @@ function runImport(text){
     var existing = state.users.filter(function(x){ return x.username === uname; })[0];
     if(existing){
       if(name) existing.name = name;
-      if(anyDay) existing.sched = sched;
+      if(anyDay) setSchedule(existing, sched, schedFrom);
       if(existing.role !== "admin" || role === "admin") existing.role = role;
       if(pin){
         jobs = jobs.then(function(){
@@ -2012,9 +2211,11 @@ function runImport(text){
     jobs = jobs.then(function(){
       var salt = randSalt();
       return hashPin(given, salt).then(function(h){
-        state.users.push({ id: nextId("u"), username: uname, name: name, salt: salt, hash: h,
+        var rec = { id: nextId("u"), username: uname, name: name, salt: salt, hash: h,
           role: role, createdAt: new Date().toISOString(), active: true,
-          sched: anyDay ? sched : null });
+          sched: anyDay ? sched : null };
+        if(anyDay) rec.schedules = [{ from: schedFrom, days: sched }];
+        state.users.push(rec);
       });
     });
     notes.forEach(function(t){ log.push({ text:t, note:true }); });
@@ -2062,11 +2263,12 @@ $("impGo").addEventListener("click", function(){
   });
 });
 $("impTemplate").addEventListener("click", function(){
+  var starts = "," + dayKey(new Date());
   download("import-template.csv",
-    "name,username,passcode,role,mon,tue,wed,thu,fri,sat,sun\r\n" +
-    "Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off\r\n" +
-    "Dan Reyes,dreyes,,staff,10:00 PM-6:00 AM,10:00 PM-6:00 AM,10:00 PM-6:00 AM,off,off,10:00 PM-6:00 AM,10:00 PM-6:00 AM\r\n" +
-    "Ava Cruz,acruz,,admin,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,off,off\r\n");
+    "name,username,passcode,role,mon,tue,wed,thu,fri,sat,sun,schedule_from\r\n" +
+    "Maria Santos,msantos,,staff,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,9:00 AM-6:00 PM,off,off" + starts + "\r\n" +
+    "Dan Reyes,dreyes,,staff,10:00 PM-6:00 AM,10:00 PM-6:00 AM,10:00 PM-6:00 AM,off,off,10:00 PM-6:00 AM,10:00 PM-6:00 AM" + starts + "\r\n" +
+    "Ava Cruz,acruz,,admin,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,8:00 AM-5:00 PM,off,off" + starts + "\r\n");
 });
 $("tAdd").addEventListener("click", function(){
   ask("Add a person", [
@@ -2098,11 +2300,23 @@ $("tAdd").addEventListener("click", function(){
     });
   });
 });
+/* every person, day by day across the days they have worked — so the big export
+   carries weekends, rest days and absences too, not just the shifts that were punched */
+function allDayRows(){
+  var out = [];
+  state.users.forEach(function(u){
+    var es = entriesFor(u.id);
+    if(!es.length) return;
+    var keys = es.map(function(e){ return e.date; }).sort();
+    out = out.concat(dayRows(u.id, keys[0], keys[keys.length - 1], 4000));
+  });
+  return out;
+}
 $("tExport").addEventListener("click", function(){
   if(!state.entries.length){ toast("No shifts recorded yet."); return; }
-  download("all-timesheets-" + dayKey(new Date()) + ".csv", toCsv(state.entries.slice().sort(function(a,b){
-    return new Date(a.inAt) - new Date(b.inAt);
-  })));
+  var rows = allDayRows();
+  if(!rows.length){ toast("No shifts recorded yet."); return; }
+  download("all-timesheets-" + dayKey(new Date()) + ".csv", toCsv(rows));
 });
 $("tLog").addEventListener("click", function(){
   if(!state.entries.length){ toast("No shifts recorded yet."); return; }
@@ -2219,9 +2433,11 @@ function openSchedDialog(su, mode){
   schedTargetId = su.id;
   $("schedTitle").textContent = schedMode === "request" ? "Request a new schedule" : "Schedule for " + su.name;
   $("schedSave").textContent = schedMode === "request" ? "Submit for approval" : "Update schedule";
-  $("schedNote").textContent = schedMode === "request"
+  $("schedNote").textContent = (schedMode === "request"
     ? "Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Set out the week you would like — nothing changes until an admin approves it."
-    : "Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.";
+    : "Times are Eastern (EST), written like 9:00 AM to 6:00 PM. Every day can be different — fixed hours, a split shift, flexible hours or a rest day.") +
+    " The date below is the first day this schedule applies to; the timesheet reads it to know which week it is judging.";
+  $("schedFrom").value = currentSchedDate(su) || dayKey(new Date());
   show($("schedWhyField"), schedMode === "request");
   $("schedWhy").value = "";
   $("schedErr").textContent = "";
@@ -2275,6 +2491,8 @@ $("schedSave").addEventListener("click", function(){
     return;
   }
   var wanted = any ? next : null;
+  var from = $("schedFrom").value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(from || ""))) from = dayKey(new Date());
 
   /* staff ask for the change; nothing on file moves until an admin approves it */
   if(schedMode === "request"){
@@ -2286,23 +2504,29 @@ $("schedSave").addEventListener("click", function(){
     }
     state.requests.push({
       id: nextId("r"), userId: target.id, kind: "schedule",
-      sched: wanted, curSched: target.sched || null, note: why,
-      status: "pending", createdAt: new Date().toISOString(),
+      sched: wanted, curSched: target.sched || null, from: from, curFrom: currentSchedDate(target) || "",
+      note: why, status: "pending", createdAt: new Date().toISOString(),
       resolvedAt: null, resolvedBy: "", resolverNote: "", seen: true
     });
     schedDlg.close();
     save(); render();
-    toast("Schedule request sent — an admin approves it before anything changes.");
+    toast("Schedule request sent for " + fmtShortDate(from) + " — an admin approves it before anything changes.");
     return;
   }
 
   var changes = schedChanges(target.sched || null, wanted);
+  var wasFrom = currentSchedDate(target);
+  if(from !== wasFrom){
+    changes.push("effective " + fmtShortDate(from) +
+      (wasFrom ? " (was " + fmtShortDate(wasFrom) + ")" : " (first dated schedule on file)"));
+  }
   if(!changes.length){ schedDlg.close(); toast("Nothing changed on that schedule."); return; }
-  target.sched = wanted;
+  setSchedule(target, wanted, from);
   logEdit(null, "schedule", changes, { userId: target.id, person: target.name, date: null });
   schedDlg.close();
   save(); render();
-  toast("Schedule updated for " + target.name + " — logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
+  toast("Schedule updated for " + target.name + " — effective " + fmtShortDate(from) +
+    ", logged as @" + (currentUser() ? currentUser().username : "admin") + ".");
 });
 
 /* ---------------- go ---------------- */

@@ -76,6 +76,47 @@ and blue `#4AB1E0` (`--brand-red` / `--brand-blue`) — instead of the old green
 - Saving a schedule goes to the server straight away and is written into the change history
   like any other edit.
 
+## Day-by-day timesheet with a status
+- The sheet lists **every date in the range as its own row**, Monday to Sunday — weekends
+  appear whether or not anybody is rostered — instead of only the shifts that were punched.
+- Each row carries a **Status**:
+  - **Absent** — no clock in within **4 hours** of the scheduled start. Today's shift shows
+    *Not clocked in yet* until that window closes, and a shift that has not started shows
+    *Expected 9:00 AM*.
+  - **Late (mm:ss)** — clocked in after the scheduled start, e.g. `Late (12:30)`.
+  - **Early logout (mm:ss)** — clocked out before the scheduled end.
+  - **On time**, **Still clocked in**, **Rest day**, **Flexible hours**, **No schedule** or
+    **Worked on a rest day**. Two can appear together, e.g. `Late (05:00) · Early logout (12:00)`.
+- The totals above the sheet gained an **Absent** count next to *Days worked*, *Break time*
+  and *Total worked*.
+- The timesheet CSV follows the same shape: one row per day — weekends and absences
+  included — with `Day`, `Late (min)`, `Early out (min)` and a readable `Status` column.
+  **Export every timesheet** does the same for everybody, day by day across the days each
+  person has worked.
+- Days without a shift show `—` in the time columns; *Edit* (admin) and *Request edit*
+  (staff) only appear on days that have one. The view lists the first 400 days of a range
+  and says so; exports cover up to 4000 days per person.
+
+## Schedules carry their date
+- **Team → Schedule** has a **Schedule effective from** date, because rosters often change
+  weekly. Saving stores `{ from, days }` and **keeps the earlier dated schedules**, so last
+  week's hours still judge last week and the new hours start on the date picked.
+- The Team list shows `effective Mon, Oct 12` under the summary, a schedule request carries
+  its date, and the review box shows `Requested · effective …` beside what is on file now.
+- Records written before dates existed keep working: `u.sched` still mirrors the newest set
+  and any day with no dated record falls back to it.
+- CSV import takes an optional `schedule_from` column (`2026-10-05`) and stamps today's date
+  when the column is missing; the downloadable template includes it.
+
+## Wide layout, phone friendly
+- The page runs up to **1440px** wide (was 1040px), so the status, times and action columns
+  of the sheet sit side by side instead of being squeezed.
+- Below **760px** everything drops to one column: smaller padding, a smaller clock, punch
+  lists that wrap, tables inside their own horizontal scroller, 96%-width dialogs, and form
+  fields set to 16px so iOS and Android do not zoom the page when a field gets focus.
+- The `viewport` meta tag (`width=device-width, initial-scale=1, viewport-fit=cover`) keeps
+  the layout honest on tablets and phones, and safe-area padding covers notched screens.
+
 ## Files
 
 | File | Purpose |
