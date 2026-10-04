@@ -13,20 +13,32 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  color-scheme: dark;
-  --field:#081726;
-  --panel:#0E2436;
-  --panel-2:#123049;
-  --line:#1E4463;
-  --line-soft:#16354E;
-  --paper:#E8F0F6;
-  --muted:#8FAAC2;
-  --signal:#43D6A0;
-  --signal-ink:#04241A;
-  --amber:#F0A93B;
-  --amber-ink:#2A1A02;
-  --lunch:#9D9AF5;
-  --alert:#FF7A70;
+  color-scheme: light;
+  /* White page, white panels, dark ink: every colour below is checked to stay
+     legible on white, and anything used as a fill takes white text on top. */
+  --field:#F2F5F8;
+  --panel:#FFFFFF;
+  --panel-2:#EDF1F5;
+  --line:#C7D1DB;
+  --line-soft:#E4EAF0;
+  --paper:#15202B;
+  --muted:#5B6673;
+  --signal:#0B7A52;
+  --signal-ink:#FFFFFF;
+  --signal-fill:#E3F6EE;
+  --signal-line:#8FD5BC;
+  --amber:#8A5300;
+  --amber-ink:#FFFFFF;
+  --amber-fill:#FCF0DA;
+  --amber-line:#E4C68C;
+  --lunch:#4A44C4;
+  --lunch-ink:#FFFFFF;
+  --lunch-fill:#ECEBFD;
+  --lunch-line:#B5B1F1;
+  --alert:#C02A20;
+  --alert-ink:#FFFFFF;
+  --alert-fill:#FCEBE9;
+  --alert-line:#EAA9A2;
   /* logo colours, sampled from logo.png: red seal, globe blue, figure navy */
   --brand-red:#FF0C04;
   --brand-blue:#4AB1E0;
@@ -64,19 +76,19 @@ input,select{font:inherit}
   background:var(--panel-2);color:var(--paper);cursor:pointer;
   font-weight:500;transition:background .12s ease,border-color .12s ease;
 }
-.btn:hover:not(:disabled){background:#163956;border-color:#2A5A81}
+.btn:hover:not(:disabled){background:#DFE6ED;border-color:#9DB0C2}
 .btn:disabled{opacity:.42;cursor:not-allowed}
 .btn-quiet{background:transparent}
 .btn-quiet:hover:not(:disabled){background:var(--panel-2)}
-.btn-danger{color:var(--alert);border-color:#4A2530}
-.btn-danger:hover:not(:disabled){background:#2B151B;border-color:#6A343F}
+.btn-danger{color:var(--alert);border-color:var(--alert-line)}
+.btn-danger:hover:not(:disabled){background:var(--alert-fill);border-color:#D98078}
 .field{display:block;margin:0 0 14px}
 .field span{display:block;font-size:.86rem;color:var(--muted);margin-bottom:6px}
 .field input,.field select{
   width:100%;padding:11px 12px;border-radius:8px;
-  border:1px solid var(--line);background:#071A2A;color:var(--paper);
+  border:1px solid var(--line);background:#FFFFFF;color:var(--paper);
 }
-.field input::placeholder{color:#5F7E99}
+.field input::placeholder{color:#6E7884}
 .note{font-size:.84rem;color:var(--muted);margin:10px 0 0}
 .err{color:var(--alert);font-size:.9rem;margin:0 0 12px;min-height:1.2em}
 .hidden{display:none !important}
@@ -120,23 +132,23 @@ input,select{font:inherit}
 .chip{display:inline-flex;align-items:center;gap:9px;padding:6px 13px 6px 11px;border-radius:999px;font-size:.88rem;font-weight:500;border:1px solid var(--line)}
 .dot{width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
 .chip-off{color:var(--muted)}
-.chip-in{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
-.chip-brk{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
+.chip-in{color:var(--signal);border-color:var(--signal-line);background:var(--signal-fill)}
+.chip-brk{color:var(--amber);border-color:var(--amber-line);background:var(--amber-fill)}
 .elapsed{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:2.6rem;line-height:1.1;margin:16px 0 2px;letter-spacing:-.02em}
 .elapsed small{font-size:.9rem;font-family:var(--sans);color:var(--muted);display:block;margin-top:6px;letter-spacing:0}
 .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px;margin-top:10px}
 .actions .btn{padding:14px 12px;font-weight:600}
 .row-label{margin:20px 0 0;font-size:.86rem;color:var(--muted)}
 .btn-in{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
-.btn-in:hover:not(:disabled){background:#57E7B2;border-color:#57E7B2}
-.btn-brk{background:transparent;color:var(--amber);border-color:#5A4220}
-.btn-brk:hover:not(:disabled){background:#2A1F0B}
+.btn-in:hover:not(:disabled){background:#0A6A47;border-color:#0A6A47}
+.btn-brk{background:transparent;color:var(--amber);border-color:var(--amber-line)}
+.btn-brk:hover:not(:disabled){background:var(--amber-fill)}
 .btn-brk.live{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
-.btn-lunch{background:transparent;color:var(--lunch);border-color:#3A3A6E}
-.btn-lunch:hover:not(:disabled){background:#191A38}
-.btn-lunch.live{background:var(--lunch);color:#12122E;border-color:var(--lunch)}
+.btn-lunch{background:transparent;color:var(--lunch);border-color:var(--lunch-line)}
+.btn-lunch:hover:not(:disabled){background:var(--lunch-fill)}
+.btn-lunch.live{background:var(--lunch);color:var(--lunch-ink);border-color:var(--lunch)}
 .btn-out{background:transparent;border-color:var(--line)}
-.chip-lunch{color:var(--lunch);border-color:#3A3A6E;background:#191A38}
+.chip-lunch{color:var(--lunch);border-color:var(--lunch-line);background:var(--lunch-fill)}
 
 /* ---------- lists & tables ---------- */
 .block{padding:18px 20px}
@@ -154,10 +166,10 @@ table{width:100%;border-collapse:collapse;font-size:.93rem;min-width:600px}
 /* one day, one status: on time, late, early out, absent */
 .st{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:500;
   white-space:nowrap;border:1px solid transparent}
-.st-ok{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
-.st-late,.st-early{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
-.st-absent{color:var(--alert);border-color:#5A2A26;background:#2A1012}
-.st-open{color:var(--lunch);border-color:#3A3A6E;background:#191A38}
+.st-ok{color:var(--signal);border-color:var(--signal-line);background:var(--signal-fill)}
+.st-late,.st-early{color:var(--amber);border-color:var(--amber-line);background:var(--amber-fill)}
+.st-absent{color:var(--alert);border-color:var(--alert-line);background:var(--alert-fill)}
+.st-open{color:var(--lunch);border-color:var(--lunch-line);background:var(--lunch-fill)}
 .st-off{color:var(--muted);border-color:var(--line-soft)}
 th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line-soft);white-space:nowrap}
 th{color:var(--muted);font-weight:500;font-size:.85rem;border-top:0}
@@ -169,12 +181,12 @@ tfoot td{border-top:1px solid var(--line);font-weight:600}
 .totals div span{display:block;font-size:.84rem;color:var(--muted)}
 .totals div strong{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:500}
 .onnow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px;padding:0;list-style:none}
-.onnow li{padding:6px 12px;border-radius:999px;background:#0A2C23;border:1px solid #1C5A46;color:var(--signal);font-size:.88rem}
+.onnow li{padding:6px 12px;border-radius:999px;background:var(--signal-fill);border:1px solid var(--signal-line);color:var(--signal);font-size:.88rem}
 
 dialog{border:1px solid var(--line);background:var(--panel);color:var(--paper);border-radius:var(--r);padding:22px;width:min(400px,92vw)}
 #impDlg{width:min(680px,94vw)}
-#impDlg textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper);font-family:var(--mono);font-size:.84rem;resize:vertical}
-#impDlg code{background:#071A2A;border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px}
+#impDlg textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#FFFFFF;color:var(--paper);font-family:var(--mono);font-size:.84rem;resize:vertical}
+#impDlg code{background:#EEF2F6;border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px}
 #impDlg input[type=file]{color:var(--muted);font-size:.88rem;max-width:100%}
 #impResult{max-height:220px;overflow:auto;margin:6px 0 14px;font-size:.88rem}
 #impResult ul{margin:0;padding-left:18px}
@@ -183,9 +195,9 @@ dialog{border:1px solid var(--line);background:var(--panel);color:var(--paper);b
 #impResult .note{color:var(--amber)}
 #impResult .pin{font-family:var(--mono);color:var(--amber)}
 #actDlg{width:min(540px,94vw);max-height:92vh;overflow:auto}
-#actBody textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper);resize:vertical;font-family:inherit}
+#actBody textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#FFFFFF;color:var(--paper);resize:vertical;font-family:inherit}
 /* Break 1 / Break 2 / Lunch get a pair of boxes each inside the shift dialogs */
-.pause-edit{border:1px solid var(--line-soft);border-radius:10px;background:#071A2A;padding:12px 14px;margin:0 0 14px}
+.pause-edit{border:1px solid var(--line-soft);border-radius:10px;background:#F7F9FB;padding:12px 14px;margin:0 0 14px}
 .pause-edit > .note{margin:0 0 10px}
 .pause-row{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-end}
 .pause-row .plabel{flex:0 0 54px;font-size:.86rem;color:var(--muted);padding-bottom:11px}
@@ -196,17 +208,17 @@ dialog{border:1px solid var(--line);background:var(--panel);color:var(--paper);b
   .pause-row .field{flex:1 1 100%}
 }
 .reqtag{font-size:.78rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.reqtag.pending{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
-.reqtag.declined{color:var(--alert);border-color:#4A2530;background:#2B151B}
-.reqtag.approved{color:var(--signal);border-color:#1C5A46;background:#0A2C23}
-dialog::backdrop{background:rgba(2,10,18,.72)}
+.reqtag.pending{color:var(--amber);border-color:var(--amber-line);background:var(--amber-fill)}
+.reqtag.declined{color:var(--alert);border-color:var(--alert-line);background:var(--alert-fill)}
+.reqtag.approved{color:var(--signal);border-color:var(--signal-line);background:var(--signal-fill)}
+dialog::backdrop{background:rgba(15,23,32,.45)}
 dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 .dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 .toast{
   position:fixed;left:50%;transform:translateX(-50%);
   bottom:calc(20px + env(safe-area-inset-bottom,0px));
   background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
-  padding:11px 18px;font-size:.92rem;z-index:50;box-shadow:0 8px 24px rgba(2,10,18,.5)
+  padding:11px 18px;font-size:.92rem;z-index:50;box-shadow:0 8px 24px rgba(15,23,32,.16)
 }
 /* ---------- the big centre title ---------- */
 .brand{padding:2px 0 18px;text-align:center}
@@ -217,11 +229,11 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 }
 .brand-title{
   margin:0;font-weight:700;letter-spacing:-.015em;line-height:1.12;
-  font-size:clamp(1.55rem,5.4vw,2.9rem);color:#E4F1FA;
+  font-size:clamp(1.55rem,5.4vw,2.9rem);color:var(--brand-navy);
 }
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
   .brand-title{
-    background:linear-gradient(180deg,#FFFFFF 0%,#D3E7F4 45%,#7FCDB2 100%);
+    background:linear-gradient(180deg,#104474 0%,#1E6FA8 52%,#0B7A52 100%);
     -webkit-background-clip:text;background-clip:text;
     -webkit-text-fill-color:transparent;color:transparent;
   }
@@ -253,14 +265,14 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
 .sched-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line-soft);flex-wrap:wrap}
 .sched-row:first-child{border-top:0}
 .sched-day{width:3.2em;flex:none;font-weight:600;font-size:.92rem}
-.sched-kind{flex:1 1 150px;min-width:132px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper)}
+.sched-kind{flex:1 1 150px;min-width:132px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#FFFFFF;color:var(--paper)}
 .sched-times{display:flex;align-items:center;gap:6px;flex:2 1 268px;flex-wrap:wrap}
 .sched-times input{
-  padding:8px 9px;border-radius:8px;border:1px solid var(--line);background:#071A2A;
+  padding:8px 9px;border-radius:8px;border:1px solid var(--line);background:#FFFFFF;
   color:var(--paper);font-family:var(--mono);font-size:.88rem;width:7.6em
 }
 #schedDlg textarea{
-  width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;
+  width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#FFFFFF;
   color:var(--paper);resize:vertical;font-family:inherit;font-size:.9rem
 }
 .sched-plus{font-size:.9rem}
@@ -392,6 +404,7 @@ dialog h2{margin:0 0 16px;font-size:1.05rem;font-weight:600}
           <button class="btn" id="sWeek">This week</button>
           <button class="btn btn-in hidden" id="sAdd">Add shift</button>
           <button class="btn" id="sExport">Export timesheet</button>
+          <button class="btn" id="sPng">Download PNG</button>
           <button class="btn" id="sLog">Export punch log</button>
         </div>
         <div class="totals">
@@ -1362,6 +1375,7 @@ function render(){
   show($("btnPin"), u.role === "admin");   // passcodes are changed by an admin
   show($("sExport"), u.role === "admin");  // only an admin exports timesheets and punch logs
   show($("sLog"), u.role === "admin");
+  show($("sPng"), u.role === "admin");     // and only an admin saves the sheet as a picture
   show($("sAdd"), u.role === "admin");     // the admin adds shifts for other people too
   show($("btnSchedReq"), u.role !== "admin"); // staff ask for schedule changes, the admin approves them
   document.querySelector('.tab[data-view="sheet"]').textContent = u.role === "admin" ? "Timesheets" : "My timesheet";
@@ -1582,7 +1596,7 @@ function renderTeam(){
     var live = openPause(e);
     var li = document.createElement("li");
     li.textContent = u.name + " · " + (live ? "on " + pauseDef(live.type).label.toLowerCase() : fmtDur(workedMs(e, now)));
-    if(live) li.style.cssText = "background:#2A1F0B;border-color:#5A4220;color:var(--amber)";
+    if(live) li.style.cssText = "background:var(--amber-fill);border-color:var(--amber-line);color:var(--amber)";
     on.appendChild(li);
   });
   show($("onNowEmpty"), count === 0);
@@ -2205,6 +2219,270 @@ $("sLog").addEventListener("click", function(){
   var list = rangeEntries(t.id, from, to);
   if(!list.length && !auditInRange(t.id, from, to).length){ toast("Nothing to export in this range."); return; }
   download("punch-log-" + t.username + "-" + from + ".csv", toLogCsv(list, auditInRange(t.id, from, to)));
+});
+
+/* ---------- Download the timesheet as a PNG ----------
+   The sheet is drawn onto a canvas rather than screenshotted: white page, dark
+   ink, and none of the buttons in the picture — no Edit / Request edit column,
+   no Export timesheet, Export punch log or Add shift. Only what the sheet says. */
+var PNG_PAD = 48,
+    PNG_COLS = [116, 246, 92, 92, 76, 76, 76, 84],   /* Date, Status, In, Out, B1, B2, Lunch, Worked */
+    PNG_W = PNG_PAD * 2 + 858,
+    PNG_SANS = '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+    PNG_MONO = '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+/* the status pills keep the same colours they have on screen */
+var PNG_ST = {
+  "st-ok":     { bg:"#E3F6EE", line:"#8FD5BC", ink:"#0B7A52" },
+  "st-late":   { bg:"#FCF0DA", line:"#E4C68C", ink:"#8A5300" },
+  "st-early":  { bg:"#FCF0DA", line:"#E4C68C", ink:"#8A5300" },
+  "st-absent": { bg:"#FCEBE9", line:"#EAA9A2", ink:"#C02A20" },
+  "st-open":   { bg:"#ECEBFD", line:"#B5B1F1", ink:"#4A44C4" },
+  "st-off":    { bg:"#F2F5F8", line:"#E4EAF0", ink:"#5B6673" }
+};
+function pngSty(cls){
+  var keys = Object.keys(PNG_ST);
+  for(var i = 0; i < keys.length; i++){
+    if((" " + cls + " ").indexOf(" " + keys[i] + " ") > -1) return PNG_ST[keys[i]];
+  }
+  return PNG_ST["st-ok"];
+}
+function pngCell(td){ return (td.innerText || "").replace(/\s+/g, " ").trim(); }
+function pngDate(key){
+  return keyToDate(key).toLocaleDateString(undefined,
+    { weekday:"short", month:"short", day:"numeric", year:"numeric" });
+}
+function pngWrap(ctx, s, font, maxW){
+  ctx.font = font;
+  var words = String(s).split(/\s+/), lines = [], cur = "";
+  for(var i = 0; i < words.length; i++){
+    var t = cur ? cur + " " + words[i] : words[i];
+    if(ctx.measureText(t).width <= maxW || !cur) cur = t;
+    else { lines.push(cur); cur = words[i]; }
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+/* letterspaced centred caption, drawn one letter at a time */
+function pngTracked(ctx, s, cx, y, font, color, gap, dry){
+  ctx.font = font; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  var w = 0, i;
+  for(i = 0; i < s.length; i++) w += ctx.measureText(s.charAt(i)).width + gap;
+  w -= gap;
+  var x = cx - w / 2;
+  for(i = 0; i < s.length; i++){
+    if(!dry){ ctx.fillStyle = color; ctx.fillText(s.charAt(i), x, y); }
+    x += ctx.measureText(s.charAt(i)).width + gap;
+  }
+}
+/* Paints the whole picture. Called twice: once with dry = true against a stub
+   canvas to measure the height, then for real. Every measurement runs either
+   way; only the drawing is skipped while measuring. */
+function paintSheet(ctx, d, dry){
+  var W = PNG_W, PAD = PNG_PAD, y = 36, i;
+
+  function box(x, yy, w, h, color, r, mode){
+    if(dry) return;
+    ctx.save();
+    ctx.lineWidth = 1; ctx.strokeStyle = color; ctx.fillStyle = color;
+    if(r && ctx.roundRect){
+      ctx.beginPath(); ctx.roundRect(x, yy, w, h, r);
+      if(mode === "stroke") ctx.stroke(); else ctx.fill();
+    } else if(mode === "stroke") ctx.strokeRect(x + .5, yy + .5, w - 1, h - 1);
+    else ctx.fillRect(x, yy, w, h);
+    ctx.restore();
+  }
+  function rule(x1, yy, x2, color){
+    if(dry) return;
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x1, yy + .5); ctx.lineTo(x2, yy + .5); ctx.stroke();
+    ctx.restore();
+  }
+  function say(s, x, yy, font, color, align){
+    ctx.font = font; ctx.textAlign = align || "left"; ctx.textBaseline = "alphabetic";
+    if(dry) return;
+    ctx.fillStyle = color; ctx.fillText(s, x, yy);
+  }
+  function measure(s, font){ ctx.font = font; return ctx.measureText(s).width; }
+
+  /* --- masthead: seal, wordmark, TIMELOG rule --- */
+  if(d.img && d.img.naturalWidth){
+    if(!dry) ctx.drawImage(d.img, W / 2 - 40, y, 80, 80);
+    y += 80;
+  }
+  y += 20;
+  say("Prestige Dealer Alliance", W / 2, y + 30, "700 34px " + PNG_SANS, "#104474", "center");
+  y += 40;
+  pngTracked(ctx, "TIMESHEET", W / 2, y + 10, "600 13px " + PNG_SANS, "#5B6673", 5, dry);
+  y += 20;
+  if(!dry){
+    var g = ctx.createLinearGradient(W / 2 - 150, 0, W / 2 + 150, 0);
+    g.addColorStop(0, "rgba(255,12,4,0)");
+    g.addColorStop(.16, "#FF0C04");
+    g.addColorStop(.5, "#4AB1E0");
+    g.addColorStop(.84, "#FF0C04");
+    g.addColorStop(1, "rgba(255,12,4,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(W / 2 - 150, y + 12, 300, 3);
+  }
+  y += 46;
+
+  /* --- whose sheet, which days, whose clock --- */
+  var nameW = measure(d.name, "700 20px " + PNG_SANS);
+  say(d.name, PAD, y + 14, "700 20px " + PNG_SANS, "#15202B");
+  say(d.who, PAD + nameW + 10, y + 14, "500 15px " + PNG_SANS, "#5B6673");
+  y += 28;
+  say(d.range, PAD, y + 11, "400 15px " + PNG_SANS, "#15202B");
+  y += 21;
+  say("All times US Eastern (EST) · 12-hour clock", PAD, y + 11, "400 13px " + PNG_SANS, "#5B6673");
+  y += 21;
+  y += 24;
+
+  /* --- the four totals, same numbers as the sheet --- */
+  var tw = W - PAD * 2, th = 66;
+  box(PAD, y, tw, th, "#F7F9FB", 10, "fill");
+  box(PAD, y, tw, th, "#E4EAF0", 10, "stroke");
+  var tk = [["Days worked", d.days], ["Absent", d.absent], ["Break time", d.brk], ["Total worked", d.worked]];
+  for(i = 0; i < tk.length; i++){
+    var tx = PAD + (tw / tk.length) * i + 20;
+    say(tk[i][0], tx, y + 26, "400 12px " + PNG_SANS, "#5B6673");
+    say(tk[i][1], tx, y + 52, "500 20px " + PNG_MONO, "#15202B");
+  }
+  y += th;
+  y += 22;
+
+  /* --- the day rows --- */
+  var xs = [], x = PAD;
+  for(i = 0; i < PNG_COLS.length; i++){ xs.push(x); x += PNG_COLS[i]; }
+  var tblW = x - PAD, yTop = y, hh = 34;
+  box(PAD, y, tblW, hh, "#EDF1F5", 0, "fill");
+  for(i = 0; i < d.heads.length; i++){
+    var hRight = i >= 4;
+    say(d.heads[i], hRight ? xs[i] + PNG_COLS[i] - 12 : xs[i] + 12, y + 22,
+        "500 13px " + PNG_SANS, "#5B6673", hRight ? "right" : "left");
+  }
+  y += hh;
+  rule(PAD, y, PAD + tblW, "#C7D1DB");
+
+  for(var ri = 0; ri < d.rows.length; ri++){
+    var r = d.rows[ri], sty = pngSty(r.cls);
+    var stFont = "500 13px " + PNG_SANS, stMax = PNG_COLS[1] - 34;
+    var stLines = pngWrap(ctx, r.label, stFont, stMax), stW = 0;
+    for(i = 0; i < stLines.length; i++) stW = Math.max(stW, measure(stLines[i], stFont));
+    var pillH = stLines.length * 16 + 10;
+    var rh = Math.max(34, pillH + 14);
+    if(ri % 2) box(PAD, y, tblW, rh, "#F7F9FB", 0, "fill");
+
+    var py = y + (rh - pillH) / 2, pillW = Math.min(stW + 20, stMax + 6);
+    box(xs[1] + 12, py, pillW, pillH, sty.bg, pillH / 2, "fill");
+    box(xs[1] + 12, py, pillW, pillH, sty.line, pillH / 2, "stroke");
+    for(i = 0; i < stLines.length; i++){
+      say(stLines[i], xs[1] + 22, py + 17 + i * 16, stFont, sty.ink);
+    }
+
+    say(r.date, xs[0] + 12, y + rh / 2 + 5, "400 15px " + PNG_SANS, "#15202B");
+    for(i = 0; i < r.vals.length; i++){
+      var col = i + 2, v = r.vals[i], right = col >= 4;
+      var f = right ? "500 15px " + PNG_MONO : "400 15px " + PNG_SANS;
+      var dim = v === "—" || v === "-" || v === "still open";
+      say(v, right ? xs[col] + PNG_COLS[col] - 12 : xs[col] + 12, y + rh / 2 + 5,
+          f, dim ? "#7A8694" : "#15202B", right ? "right" : "left");
+    }
+    y += rh;
+    rule(PAD, y, PAD + tblW, ri === d.rows.length - 1 ? "#C7D1DB" : "#E4EAF0");
+  }
+  if(!dry){
+    ctx.save();
+    ctx.strokeStyle = "#C7D1DB"; ctx.lineWidth = 1;
+    ctx.strokeRect(PAD + .5, yTop + .5, tblW - 1, (y - yTop) - 1);
+    ctx.restore();
+  }
+
+  /* --- who took it, and who last changed it --- */
+  y += 26;
+  say(d.gen, PAD, y + 11, "400 12px " + PNG_SANS, "#5B6673");
+  y += 18;
+  if(d.sign){ say(d.sign, PAD, y + 11, "400 12px " + PNG_SANS, "#5B6673"); y += 18; }
+  y += 30;
+  return y;
+}
+/* what the sheet on screen actually says — read straight off the table, so the
+   picture can never drift from it (and never picks up the action column) */
+function sheetPngData(){
+  var t = sheetTarget();
+  var from = $("sFrom").value, to = $("sTo").value;
+  if(!from || !to){ toast("Pick a date range first."); return null; }
+  var ths = $("sheetTable").tHead.rows[0].cells, trs = $("sheetBody").rows;
+  var heads = [], rows = [], i, c;
+  for(c = 0; c < 8; c++) heads.push(pngCell(ths[c]));
+  for(i = 0; i < trs.length; i++){
+    var tds = trs[i].cells, st = tds[1].querySelector(".st");
+    rows.push({
+      date: (tds[0].innerText || "").split("\n")[0].replace(/\s+/g, " ").trim(),
+      label: st ? pngCell(st) : pngCell(tds[1]),
+      cls: st ? st.className : "",
+      vals: [pngCell(tds[2]), pngCell(tds[3]), pngCell(tds[4]),
+             pngCell(tds[5]), pngCell(tds[6]), pngCell(tds[7])]
+    });
+  }
+  if(!rows.length){ toast("Nothing to download in this range."); return null; }
+  var me = currentUser();
+  return {
+    heads: heads, rows: rows,
+    name: t.name, who: "@" + t.username,
+    range: pngDate(from) + "  –  " + pngDate(to),
+    days: $("tDays").textContent, absent: $("tAbsent").textContent,
+    brk: $("tBreak").textContent, worked: $("tWorked").textContent,
+    gen: "Downloaded " + pngDate(localKey(new Date())) + " at " + fmtClock(new Date()) +
+         (me ? " by @" + me.username : ""),
+    sign: ($("auditSign").textContent || "").replace(/\s+/g, " ").trim()
+  };
+}
+function saveBlob(name, blob){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+function pngLogo(){
+  return new Promise(function(done){
+    var img = new Image();
+    img.onload = function(){ done(img); };
+    img.onerror = function(){ done(null); };
+    img.src = "logo.png";
+  });
+}
+$("sPng").addEventListener("click", function(){
+  var d = sheetPngData();
+  if(!d) return;
+  toast("Building the image…");
+  var fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  Promise.all([fonts, pngLogo()]).then(function(r){
+    d.img = r[1] || null;
+    var stub = document.createElement("canvas");
+    stub.width = PNG_W; stub.height = 8;
+    var H = Math.ceil(paintSheet(stub.getContext("2d"), d, true));
+    if(!isFinite(H) || H < 240) H = 600;
+    /* 2x while the picture stays small, then step down so a very long range
+       never asks the browser for a gigantic canvas */
+    var S = H <= 3200 ? 2 : (H <= 7000 ? 1.5 : 1);
+    var cv = document.createElement("canvas");
+    cv.width = Math.round(PNG_W * S); cv.height = Math.round(H * S);
+    var cx = cv.getContext("2d");
+    cx.scale(S, S);
+    /* white page first: the canvas starts out fully transparent */
+    cx.fillStyle = "#FFFFFF";
+    cx.fillRect(0, 0, PNG_W, H + 1);
+    paintSheet(cx, d, false);
+    cv.toBlob(function(blob){
+      if(!blob){ toast("The image couldn't be built."); return; }
+      var name = "timesheet-" + d.who.replace("@", "") + "-" +
+                 $("sFrom").value + "-" + $("sTo").value + ".png";
+      saveBlob(name, blob);
+      toast("Saved " + name);
+    }, "image/png");
+  }, function(){ toast("The image couldn't be built."); });
 });
 
 /* the admin writes a shift straight onto somebody else's sheet; it is signed
