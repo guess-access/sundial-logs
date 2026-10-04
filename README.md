@@ -167,7 +167,7 @@ request — and nobody can switch off the last admin.
 ## Deploying
 
 1. Push this repository to Netlify: *Add new site → Import an existing project* and pick
-   `sundial-timelogs`. Netlify installs `package.json` (which is where `@netlify/blobs`
+   `sundial-logs`. Netlify installs `package.json` (which is where `@netlify/blobs`
    comes from), bundles `lib/store.js` into every function with esbuild, publishes the
    repository root and wires `/api/*` through `netlify.toml`.
 2. Confirm `/api/status` and `/api/health` answer on the new site, then sign in.
@@ -183,3 +183,21 @@ passcodes.
 
 After deploying, confirm once that the change history survives a reload on another device —
 that proves the backend stores the extra `audit` fields.
+
+## GitHub Pages mirror
+
+The repository was renamed to `sundial-logs`, so GitHub Pages serves it at
+**https://peterkingbrierlee01-maker.github.io/sundial-logs/** (the old
+`sundial-timelogs` URLs redirect). Pages is switched on for the `App` branch at the
+repository root, and `.nojekyll` makes it copy the files verbatim instead of running
+Jekyll over them. It publishes the same `index.html` byte for byte, so the mirror always
+shows the current interface — branding, EST 12-hour clock, day-by-day timesheet, dated
+schedules and the wide phone layout.
+
+Pages is a **static** host: it has no functions, so `/api/*` answers 404 there. The page
+detects that and shows *The backend isn't installed on this site yet*, and **Sign in stays
+disabled** — the mirror can be looked at but cannot clock anybody in. The working
+deployment is `https://sundial-logs.netlify.app`, where the backend and its Blobs data
+live. Making the Pages copy sign people in as well would need the browser to call that
+backend cross-origin, which means adding CORS headers to the Netlify functions — and that
+needs a Netlify deploy.
