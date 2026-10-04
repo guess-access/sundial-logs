@@ -166,20 +166,30 @@ request — and nobody can switch off the last admin.
 
 ## Deploying
 
-1. Push this repository to Netlify: *Add new site → Import an existing project* and pick
-   `sundial-logs`. Netlify installs `package.json` (which is where `@netlify/blobs`
-   comes from), bundles `lib/store.js` into every function with esbuild, publishes the
-   repository root and wires `/api/*` through `netlify.toml`.
-2. Confirm `/api/status` and `/api/health` answer on the new site, then sign in.
+The live site is **https://sundial-logs.netlify.app**, connected to this repository
+(`peterkingbrierlee01-maker/sundial-logs`, branch `App`) on the `peterlee101792` Netlify
+team. Netlify installs `package.json` (which is where `@netlify/blobs` comes from), bundles
+`lib/store.js` into every function with esbuild, publishes the repository root and wires
+`/api/*` through `netlify.toml` — so a push to `App` rebuilds the site by itself. Confirm
+`/api/status` and `/api/health` answer after a build, then sign in.
 
-If the deploy is uploaded by drag-and-drop instead, dependencies are not installed and the
+If a deploy is uploaded by drag-and-drop instead, dependencies are not installed and the
 functions fail — build from git.
 
-**Moving the data over.** On a site whose storage is still empty, sign in to the old
-deployment, take a copy of its state (`GET /api/state` with the sign-in token), and post it
-to `/api/migrate` on the new site together with `sessionUserId`. After that the accounts,
-timesheets and change history are live on the new site, and people sign in with their usual
-passcodes.
+**Moving the data over.** The site was moved off the old `pda-opsmanager` team, whose 300
+monthly build credits had run out, onto the `peterlee101792` team, which still had a full
+window. The whole database is one key in Netlify Blobs — store `sundial-timelogs`, key
+`state` — so it was copied with the Blobs REST API and checked by comparing SHA-256 of
+both copies:
+
+    GET /api/v1/blobs/<old site id>/site:sundial-timelogs/state   (old team token)
+    PUT /api/v1/blobs/<new site id>/site:sundial-timelogs/state   (new team token)
+
+`/api/status` then answers `needsSetup:false`, which proves the accounts, timesheets and
+change history arrived. The old site was renamed `sundial-logs-retired` *before* the new
+one took the name `sundial-logs`, so the URL never points at two sites at once; it still
+serves the pre-move snapshot and can be renamed back if anything goes wrong. (Signing in
+to the old deployment and posting its state to `/api/migrate` works too.)
 
 After deploying, confirm once that the change history survives a reload on another device —
 that proves the backend stores the extra `audit` fields.
