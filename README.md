@@ -24,6 +24,18 @@ and blue `#4AB1E0` (`--brand-red` / `--brand-blue`) — instead of the old green
   edit/delete events alongside the punches.
 - The record is written to both the shift object (`entry.audit`) and the shared settings log
   (`settings.audit`), so it survives if the backend only keeps one of them.
+- **Break 1, Break 2 and Lunch are edited the same way.** The edit box carries a *From* and a
+  *To* box for each of the three, prefilled with what is on file. A pair left blank is recorded
+  as *not taken*; a *To* left blank on a shift that is still open means the break is still
+  running. Only the pairs that really changed are written, and each one lands in the change
+  history in the editor's own words:
+  `Lunch 11:09 AM – 11:09 AM → 11:15 AM – 11:45 AM`, `added Break 1 3:00 PM – 3:15 PM`,
+  `removed Lunch (12:00 PM – 1:00 PM)`.
+- The boxes are checked before anything is saved: an end before its start (`The Lunch end time
+  has to be after its start.`), a start without an end on a closed shift, or an end without a
+  start each stop the save with the message under the form and leave the shift untouched.
+  Breaks that were not touched are left exactly as recorded, even when they were written by
+  the clock buttons within the same minute.
 
 ## Everything is approved by an admin
 - Staff never change a logged shift directly: their rows only offer **Request edit**, which
@@ -32,6 +44,14 @@ and blue `#4AB1E0` (`--brand-red` / `--brand-blue`) — instead of the old green
   approved, and chooses **Approve** or **Decline**. The outcome and the admin's username are
   stored on the request (`resolvedBy`) and written into the change history at the bottom of
   that person's sheet.
+- Break corrections go through the same door. A staff member's **Request edit** box carries the
+  same three pairs of boxes for Break 1, Break 2 and Lunch, prefilled from their own sheet, so
+  they can ask for a lunch that never got recorded. The pending list shows `· break times`
+  next to those requests, and the review box is prefilled with exactly what they asked for,
+  under a line saying so, with what is on file summarised above it. **Approve** writes the
+  values shown; putting a box back to what is on file simply leaves that break alone, and the
+  approval still lands in the history as `approved @username's request` followed by each
+  change.
 - Schedules work the same way: the clock screen has **Request schedule change**, the week is
   set out in the same day-by-day editor, and the admin sees the schedule on file beside the
   one requested before approving it. Approving saves it and logs the admin's username.

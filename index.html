@@ -182,8 +182,19 @@ dialog{border:1px solid var(--line);background:var(--panel);color:var(--paper);b
 #impResult .bad{color:var(--alert)}
 #impResult .note{color:var(--amber)}
 #impResult .pin{font-family:var(--mono);color:var(--amber)}
-#actDlg{width:min(440px,92vw)}
+#actDlg{width:min(540px,94vw)}
 #actBody textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:#071A2A;color:var(--paper);resize:vertical;font-family:inherit}
+/* Break 1 / Break 2 / Lunch get a pair of boxes each inside the shift dialogs */
+.pause-edit{border:1px solid var(--line-soft);border-radius:10px;background:#071A2A;padding:12px 14px;margin:0 0 14px}
+.pause-edit > .note{margin:0 0 10px}
+.pause-row{display:flex;flex-wrap:wrap;gap:0 12px;align-items:flex-end}
+.pause-row .plabel{flex:0 0 54px;font-size:.86rem;color:var(--muted);padding-bottom:11px}
+.pause-row .field{flex:1 1 140px;min-width:0;margin:0 0 10px}
+.pause-row:last-child .field{margin-bottom:0}
+@media (max-width:430px){
+  .pause-row .plabel{flex:1 1 100%;padding-bottom:4px}
+  .pause-row .field{flex:1 1 100%}
+}
 .reqtag{font-size:.78rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .reqtag.pending{color:var(--amber);border-color:#5A4220;background:#2A1F0B}
 .reqtag.declined{color:var(--alert);border-color:#4A2530;background:#2B151B}
@@ -1013,7 +1024,9 @@ function applyEditedTimes(entry, dateKey, inStr, outStr){
     var outM = parseTime(outStr);
     if(outM === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
     var outKey = dateKey;
-    if(outM <= inM){ var nd = keyToDate(dateKey); nd.setDate(nd.getDate()+1); outKey = localKey(nd); }
+    /* Only a time earlier than clock-in is an overnight shift; the same clock
+       time would otherwise push the shift a whole day into the future. */
+    if(outM < inM){ var nd = keyToDate(dateKey); nd.setDate(nd.getDate()+1); outKey = localKey(nd); }
     var newOut = etToUtc(outKey, outM);
     if(newOut.getTime() <= newIn.getTime()) return "Clock-out has to be after clock-in.";
     newOutIso = newOut.toISOString();
@@ -1030,6 +1043,113 @@ var PAUSES = [
 ];
 function pauseDef(key){
   return PAUSES.filter(function(p){ return p.key === key; })[0] || { key:key, label:key, cls:"btn-brk", chip:"chip-brk" };
+}
+/* ---- Break 1 / Break 2 / Lunch live on the shift as start/end pairs, so the
+   dialogs show each one as two boxes. "On file" is read back the way it was
+   written (first start, last end): a shift only ever carries one of a kind
+   unless someone adds another, and those stay put until that kind is edited. */
+function pauseDisp(e, key){
+  var list = ((e && e.pauses) || []).filter(function(p){ return p && p.type === key; });
+  if(!list.length) return { start:"", end:"" };
+  return {
+    start: list[0].start ? fmtClock(new Date(list[0].start)) : "",
+    end: list[list.length-1].end ? fmtClock(new Date(list[list.length-1].end)) : ""
+  };
+}
+function fmtPauseRange(v){
+  if(!v || !v.start) return "not taken";
+  return v.start + " – " + (v.end || "still running");
+}
+function pauseSummary(e){
+  var bits = [];
+  PAUSES.forEach(function(p){
+    var v = pauseDisp(e, p.key);
+    if(v.start) bits.push(p.label + " " + fmtPauseRange(v));
+  });
+  return bits.length ? bits.join(", ") : "no breaks recorded";
+}
+/* The three rows of boxes. `shown` (requests being reviewed) overrides what is
+   on file, so the admin sees exactly what would be written if they approve. */
+function pauseEditHtml(prefix, e, shown){
+  var rows = PAUSES.map(function(p){
+    var v = (shown && shown[p.key]) || pauseDisp(e, p.key);
+    return '<div class="pause-row"><span class="plabel" aria-hidden="true">' + esc(p.label) + '</span>' +
+      '<label class="field"><span>From (EST)</span><input id="' + prefix + p.key + 'S" aria-label="' + esc(p.label) +
+        ' start (EST)" value="' + esc(v.start) +
+        '" placeholder="not taken"></label>' +
+      '<label class="field"><span>To (EST)</span><input id="' + prefix + p.key + 'E" aria-label="' + esc(p.label) +
+        ' end (EST)" value="' + esc(v.end) +
+        '" placeholder="leave blank = still running"></label></div>';
+  }).join("");
+  return '<div class="pause-edit">' +
+    '<p class="note"><strong>Break 1, Break 2 and Lunch</strong> — the hours each one ran. ' +
+    'Leave both boxes blank if it wasn\'t taken.</p>' + rows + '</div>';
+}
+/* Reads the three pairs back out. Only what differs from the shift is touched,
+   so untouched (or re-typed the same) breaks are left exactly as recorded. */
+function readPauses(root, prefix, e, shiftOpen){
+  var plan = [], changes = [];
+  for(var i=0;i<PAUSES.length;i++){
+    var p = PAUSES[i];
+    var sEl = root.querySelector("#" + prefix + p.key + "S");
+    var eEl = root.querySelector("#" + prefix + p.key + "E");
+    if(!sEl || !eEl) continue;
+    var sTxt = sEl.value.trim(), eTxt = eEl.value.trim();
+    var oldDisp = pauseDisp(e, p.key);
+    if(!sTxt && !eTxt){
+      if(!oldDisp.start) continue;              /* nothing there, nothing to do */
+      plan.push({ type:p.key, clear:true });
+      changes.push("removed " + p.label + " (" + fmtPauseRange(oldDisp) + ")");
+      continue;
+    }
+    if(!sTxt) return { err:"Give " + p.label + " a start time, or leave both boxes blank." };
+    var sM = parseTime(sTxt);
+    if(sM === null) return { err:"Enter the " + p.label + " start time like 12:30 PM." };
+    var eM = null;
+    if(eTxt){
+      eM = parseTime(eTxt);
+      if(eM === null) return { err:"Enter the " + p.label + " end time like 1:15 PM, or leave it blank." };
+    }
+    var newDisp = { start: fmtClock(etToUtc(e.date, sM)), end: eM === null ? "" : fmtClock(etToUtc(e.date, eM)) };
+    /* Compared before anything is judged: a break that already reads exactly as
+       typed is left alone, however it was recorded. */
+    if(oldDisp.start === newDisp.start && oldDisp.end === newDisp.end) continue;
+    if(eM !== null && eM <= sM) return { err:"The " + p.label + " end time has to be after its start." };
+    if(eM === null && !shiftOpen) return { err:"Give " + p.label + " an end time, or leave both boxes blank." };
+    plan.push({ type:p.key, start:etToUtc(e.date, sM).toISOString(), end:eM === null ? null : etToUtc(e.date, eM).toISOString() });
+    changes.push(oldDisp.start
+      ? p.label + " " + fmtPauseRange(oldDisp) + " → " + fmtPauseRange(newDisp)
+      : "added " + p.label + " " + fmtPauseRange(newDisp));
+  }
+  return { err:null, plan:plan, changes:changes };
+}
+function applyPauses(entry, plan){
+  if(!plan || !plan.length) return;
+  var list = Array.isArray(entry.pauses) ? entry.pauses.slice() : [];
+  plan.forEach(function(step){
+    var out = [], placed = false;
+    for(var i=0;i<list.length;i++){
+      if(list[i].type !== step.type){ out.push(list[i]); continue; }
+      if(!placed && !step.clear){
+        out.push({ type:step.type, start:step.start, end:step.end || null });
+        placed = true;
+      }                                   /* any other run of the same kind goes */
+    }
+    if(!placed && !step.clear) out.push({ type:step.type, start:step.start, end:step.end || null });
+    list = out;
+  });
+  entry.pauses = list;
+}
+/* What a pending shift request asked for, ready to be shown over the sheet. */
+function reqPauseDisp(r){
+  var out = {};
+  (r.reqPauses || []).forEach(function(s){
+    if(!s || !s.type) return;
+    out[s.type] = s.clear
+      ? { start:"", end:"" }
+      : { start: s.start ? fmtClock(new Date(s.start)) : "", end: s.end ? fmtClock(new Date(s.end)) : "" };
+  });
+  return out;
 }
 function openEntry(uid){
   for(var i=state.entries.length-1;i>=0;i--){
@@ -1444,7 +1564,8 @@ function renderTeam(){
       (isSched ? "Schedule" : esc(fmtShortDate(r.date))) + '</span>' +
       '<span class="p-what">' + (isSched
         ? esc(u.name) + ' wants a new schedule'
-        : esc(u.name) + ' wants in ' + esc(r.reqIn) + (r.reqOut ? ", out " + esc(r.reqOut) : ", still open")) + '</span>' +
+        : esc(u.name) + ' wants in ' + esc(r.reqIn) + (r.reqOut ? ", out " + esc(r.reqOut) : ", still open") +
+          ((r.reqPauses || []).length ? " · break times" : "")) + '</span>' +
       '<button class="btn btn-quiet" data-review="' + esc(r.id) + '" style="padding:4px 10px;font-size:.85rem">Review</button>';
     reqList.appendChild(li);
   });
@@ -1626,9 +1747,11 @@ function submitRequestDialog(entry){
   openAct("Request a correction",
     '<p class="note" style="margin:0 0 14px">On file for ' + esc(fmtShortDate(entry.date)) + ': clocked in ' +
       esc(fmtClock(new Date(entry.inAt))) + (entry.outAt ? ", out " + esc(curOut) : ", still open") +
+      ' · ' + esc(pauseSummary(entry)) +
       '. An admin reviews this before anything changes.</p>' +
     '<label class="field"><span>Correct clock-in time (EST)</span><input id="reqIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
     '<label class="field"><span>Correct clock-out time (EST)</span><input id="reqOut" value="' + esc(curOut) + '" placeholder="leave blank if still open"></label>' +
+    pauseEditHtml("rq", entry) +
     '<label class="field"><span>What happened?</span><textarea id="reqNote" rows="3" placeholder="e.g. forgot to clock out at lunch"></textarea></label>',
     [
       { label:"Cancel", cls:"btn-quiet", close:true },
@@ -1642,10 +1765,12 @@ function submitRequestDialog(entry){
           if(parseTime(inStr) === null) return "Enter the clock-in time like 9:05 AM.";
           if(outStr && parseTime(outStr) === null) return "Enter the clock-out time like 6:00 PM, or leave it blank.";
           if(note.length < 3) return "Add a short note about what's wrong.";
+          var pPlan = readPauses(body, "rq", cur, !outStr || /^still open$/i.test(outStr));
+          if(pPlan.err) return pPlan.err;
           state.requests.push({
             id: nextId("r"), userId: u.id, entryId: cur.id, date: cur.date, kind: "shift",
             curIn: cur.inAt, curOut: cur.outAt,
-            reqIn: inStr, reqOut: outStr, note: note,
+            reqIn: inStr, reqOut: outStr, reqPauses: pPlan.plan, note: note,
             status: "pending", createdAt: new Date().toISOString(),
             resolvedAt: null, resolvedBy: "", resolverNote: "", seen: true
           });
@@ -1664,16 +1789,22 @@ function reviewRequestDialog(reqId){
   var u = userOf(r.userId);
   var entry = findEntry(r.entryId);
   var me = currentUser();
+  var liveIn = entry ? entry.inAt : r.curIn;
+  var liveOut = entry ? entry.outAt : r.curOut;
   openAct("Review request — " + u.name,
     '<p class="note" style="margin:0 0 6px">' + esc(fmtShortDate(r.date)) + '</p>' +
-    '<p class="note" style="margin:0 0 14px">On file: in ' + esc(fmtClock(new Date(r.curIn))) +
-      (r.curOut ? ", out " + esc(fmtClock(new Date(r.curOut))) : ", still open") + '.<br>' +
+    '<p class="note" style="margin:0 0 14px">On file: in ' + esc(fmtClock(new Date(liveIn))) +
+      (liveOut ? ", out " + esc(fmtClock(new Date(liveOut))) : ", still open") +
+      (entry ? ' · ' + esc(pauseSummary(entry)) : '') + '.<br>' +
       esc(u.name) + ' says: “' + esc(r.note) + '”<br>' +
       'Approving writes your username — <strong style="color:var(--amber)">@' + esc(me ? me.username : "") +
       '</strong> — into the change history at the bottom of their sheet.</p>' +
     (entry
       ? '<label class="field"><span>Approve with clock-in (EST)</span><input id="revIn" value="' + esc(r.reqIn) + '"></label>' +
-        '<label class="field"><span>Approve with clock-out (EST)</span><input id="revOut" value="' + esc(r.reqOut) + '" placeholder="leave blank = still open"></label>'
+        '<label class="field"><span>Approve with clock-out (EST)</span><input id="revOut" value="' + esc(r.reqOut) + '" placeholder="leave blank = still open"></label>' +
+        pauseEditHtml("rev", entry, reqPauseDisp(r)) +
+        '<p class="note" style="margin:-2px 0 0">These boxes are prefilled with what ' + esc(u.name) +
+        ' asked for — approving writes them onto the sheet.</p>'
       : '<p class="note" style="margin:0">That shift no longer exists — only Decline is available.</p>'),
     [
       { label:"Decline", cls:"btn-danger", run:function(){
@@ -1698,6 +1829,8 @@ function reviewRequestDialog(reqId){
           if(!ent) return "That shift no longer exists — only Decline is available.";
           var inStr = body.querySelector("#revIn").value.trim();
           var outStr = body.querySelector("#revOut").value.trim();
+          var pPlan = readPauses(body, "rev", ent, !outStr || /^still open$/i.test(outStr));
+          if(pPlan.err) return pPlan.err;
           var beforeIn = fmtClock(new Date(ent.inAt));
           var beforeOut = ent.outAt ? fmtClock(new Date(ent.outAt)) : "still open";
           var err = applyEditedTimes(ent, ent.date, inStr, outStr);
@@ -1707,6 +1840,8 @@ function reviewRequestDialog(reqId){
           var afterOut = ent.outAt ? fmtClock(new Date(ent.outAt)) : "still open";
           if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
           if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
+          applyPauses(ent, pPlan.plan);
+          pPlan.changes.forEach(function(c){ changes.push(c); });
           changes.unshift("approved @" + u.username + "'s request");
           logEdit(ent, "approve", changes);
           var who = currentUser();
@@ -1775,9 +1910,11 @@ function editShiftDialog(entry){
   var u = userOf(entry.userId);
   var me = currentUser();
   openAct("Edit shift — " + u.name,
-    '<p class="note" style="margin:0 0 14px">' + esc(fmtShortDate(entry.date)) + ' · on file now: ' + esc(describeShift(entry)) + '</p>' +
+    '<p class="note" style="margin:0 0 14px">' + esc(fmtShortDate(entry.date)) + ' · on file now: ' + esc(describeShift(entry)) +
+      ' · ' + esc(pauseSummary(entry)) + '</p>' +
     '<label class="field"><span>Clock in (EST)</span><input id="edIn" value="' + esc(fmtClock(new Date(entry.inAt))) + '"></label>' +
     '<label class="field"><span>Clock out (EST)</span><input id="edOut" value="' + (entry.outAt ? esc(fmtClock(new Date(entry.outAt))) : "") + '" placeholder="leave blank = still open"></label>' +
+    pauseEditHtml("ed", entry) +
     '<p class="note" style="margin:2px 0 0">Saved straight onto ' + esc(u.name) + '\'s timesheet and written into the change history at the bottom of the sheet as <strong style="color:var(--amber)">@' +
       esc(me ? me.username : "") + '</strong>.</p>',
     [
@@ -1795,15 +1932,22 @@ function editShiftDialog(entry){
       { label:"Save changes", cls:"btn-in", run:function(body){
           var cur = findEntry(entryId);
           if(!cur) return "That shift is no longer on the sheet.";
+          var inStr = body.querySelector("#edIn").value.trim();
+          var outStr = body.querySelector("#edOut").value.trim();
+          var shiftOpen = !outStr || /^still open$/i.test(outStr);
+          var pPlan = readPauses(body, "ed", cur, shiftOpen);
+          if(pPlan.err) return pPlan.err;
           var beforeIn = fmtClock(new Date(cur.inAt));
           var beforeOut = cur.outAt ? fmtClock(new Date(cur.outAt)) : "still open";
-          var err = applyEditedTimes(cur, cur.date, body.querySelector("#edIn").value.trim(), body.querySelector("#edOut").value.trim());
+          var err = applyEditedTimes(cur, cur.date, inStr, outStr);
           if(err) return err;
           var changes = [];
           var afterIn = fmtClock(new Date(cur.inAt));
           var afterOut = cur.outAt ? fmtClock(new Date(cur.outAt)) : "still open";
           if(beforeIn !== afterIn) changes.push("clock in " + beforeIn + " → " + afterIn);
           if(beforeOut !== afterOut) changes.push("clock out " + beforeOut + " → " + afterOut);
+          applyPauses(cur, pPlan.plan);
+          pPlan.changes.forEach(function(c){ changes.push(c); });
           if(!changes.length){ toast("Nothing changed on this shift."); return null; }
           logEdit(cur, "edit", changes);
           save(); render();
