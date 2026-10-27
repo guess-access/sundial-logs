@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Sundial Solstice — Timelogs</title>
-  <meta name="description" content="Sundial Solstice Timelogs — clock in and out, weekly timesheets, schedules and shift approvals, all in US Eastern time.">
+  <title>Prestige Dealer Alliance Timelogs</title>
+  <meta name="description" content="Prestige Dealer Alliance Timelogs — clock in and out, weekly timesheets, schedules and team tracking in US Eastern time.">
   <link rel="icon" href="sundial-mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,15 +36,8 @@
       --alert-ink:#33100C;
       --alert-fill:#351714;
       --alert-line:#8A3A31;
-      --alert-hover-line:#A85046;
-      --mark-lime:#a5d637;
-      --field-input:#0f1721;
-      --btn-hover:#2c4b67;
-      --btn-hover-line:#55697C;
-      --placeholder:#93a5b5;
-      --code-bg:#0F1A24;
-      --inset:#121c27;
-      --scrim:rgba(4,8,12,.62);
+      --brand-red:#ff0c04;
+      --brand-blue:#4ab1e0;
       --shadow:0 24px 60px -28px rgba(0,0,0,.75);
       --sans:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
       --display:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -80,15 +73,8 @@
       --alert-ink:#FFFFFF;
       --alert-fill:#FCEBE9;
       --alert-line:#EAA9A2;
-      --alert-hover-line:#D98078;
-      --mark-lime:#a5d637;
-      --field-input:#FFFFFF;
-      --btn-hover:#DFE6ED;
-      --btn-hover-line:#9DB0C2;
-      --placeholder:#5c6c7c;
-      --code-bg:#eef3f7;
-      --inset:#f3f8f7;
-      --scrim:rgba(15,23,32,.45);
+      --brand-red:#ff0c04;
+      --brand-blue:#4ab1e0;
       --shadow:0 24px 60px -28px rgba(19,37,54,.35);
     }
     *, *::before, *::after { box-sizing: border-box; }
@@ -98,7 +84,7 @@
       font-family: var(--sans); font-size:16px; line-height:1.6; min-height:100%;
       -webkit-font-smoothing: antialiased;
     }
-    .auth h1, .block h2, dialog h2, .brand-title, .who strong { font-family: var(--display); }
+    .auth h1, .block h2, .brand-title, .who strong { font-family: var(--display); }
     button { font: inherit; color: inherit; }
     input, select, textarea { font: inherit; }
     :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 4px; }
@@ -113,55 +99,67 @@
       font-family: var(--display); font-weight:700;
       transition: background .12s ease, border-color .12s ease, transform .12s ease;
     }
-    .btn:hover:not(:disabled) { background: var(--btn-hover); border-color: var(--btn-hover-line); transform: translateY(-1px); }
+    .btn:hover:not(:disabled) { background: var(--panel-2); border-color: var(--line); transform: translateY(-1px); }
     .btn:disabled { opacity:.42; cursor:not-allowed; }
     .btn-quiet { background: transparent; }
     .btn-quiet:hover:not(:disabled) { background: var(--panel-2); }
     .btn-in { background: var(--signal); color: var(--signal-ink); border-color: var(--signal); }
     .btn-in:hover:not(:disabled) { background: var(--signal-hover); }
-    .btn-danger { color: var(--alert); border-color: var(--alert-line); }
-    .btn-danger:hover:not(:disabled) { background: var(--alert-fill); border-color: var(--alert-hover-line); }
     .field { display:block; margin:0 0 14px; }
     .field span { display:block; font-size:.86rem; color: var(--muted); margin-bottom:6px; }
     .field input, .field select {
       width:100%; padding:13px 15px; border-radius:12px;
-      border:1px solid var(--line); background:var(--field-input); color: var(--paper);
+      border:1px solid var(--line); background:rgba(255,255,255,.02); color: var(--paper);
     }
     .field textarea {
       width:100%; padding:13px 15px; border-radius:12px; resize:vertical; font:inherit;
-      border:1px solid var(--line); background:var(--field-input); color: var(--paper);
+      border:1px solid var(--line); background:rgba(255,255,255,.02); color: var(--paper);
     }
     .field input:focus, .field select:focus, .field textarea:focus {
       outline:2px solid var(--signal); outline-offset:2px; border-color: var(--signal);
     }
-    .field input::placeholder, .field textarea::placeholder { color: var(--placeholder); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
     .note { font-size:.84rem; color: var(--muted); margin:10px 0 0; }
     .err { color: var(--alert); font-size:.9rem; margin:0 0 12px; min-height:1.2em; }
     .hidden { display:none !important; }
     .hero { padding:26px 22px 22px; text-align:center; }
     .hero-time { display:block; font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight:500; letter-spacing:-.02em; line-height:1; font-size:clamp(3rem,15vw,5.2rem); }
-    .hero-sec { font-size:.42em; color: var(--signal); font-weight:400; }
+    .hero-sec { font-size:.42em; color: var(--brand-blue); font-weight:400; }
     .hero-date { margin:10px 0 0; color: var(--muted); font-size:.95rem; }
     .auth { max-width:420px; margin:min(6vh,54px) auto 0; }
-    .auth h1 { font-size:1.35rem; font-weight:600; margin:0 0 4px; letter-spacing:-.01em; }
+    .auth h1 { font-size:1.35rem; font-weight:600; margin:0 0 4px; letter-spacing:-.01em }
     .auth p.sub { margin:0 0 22px; color: var(--muted); font-size:.94rem; }
     .auth-card { padding:22px; }
     .auth .btn { width:100%; }
     .switcher { margin:16px 0 0; text-align:center; font-size:.9rem; color: var(--muted); }
-    .linkish { background:none; border:0; padding:0; color: var(--signal); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+    .brand { padding:2px 0 18px; text-align:center; }
+    .brand-home { display:block; color:inherit; text-decoration:none; }
+    .brand-mark { display:block; margin:0 auto 12px; width:86px; height:86px; object-fit:contain; filter: drop-shadow(0 0 26px rgba(74,177,224,.26)); }
+    .brand-title {
+      margin:0; font-family: var(--display); font-weight:800; letter-spacing:-.03em; line-height:1.12;
+      font-size:clamp(1.7rem,5vw,3rem); color:var(--paper);
+    }
+    .brand-sub {
+      margin:8px 0 0; font-size:clamp(.78rem,2.4vw,1.02rem); font-weight:700; letter-spacing:.28em; text-indent:.28em; text-transform:uppercase; color: var(--muted);
+    }
+    .brand-rule {
+      display:block; width:min(340px,64%); height:3px; margin:13px auto 0; border-radius:3px;
+      background:linear-gradient(90deg, transparent, var(--brand-red) 20%, var(--brand-blue) 80%, transparent);
+    }
     .topbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:0 0 16px; border-bottom:1px solid var(--line-soft); margin-bottom:18px; }
     .who { margin-right:auto; min-width:0; display:flex; align-items:center; gap:12px; }
     .who__text { min-width:0; }
-    .who strong { display:block; font-weight:600; letter-spacing:-.01em; }
-    .who span { font-size:.84rem; color: var(--muted); }
-    .who-ava { width:44px; height:44px; border-radius:50%; object-fit:cover; background: var(--panel-2); border:1px solid var(--line); }
-    .who-ava--init { display:inline-flex; align-items:center; justify-content:center; font-family:var(--display); font-weight:700; font-size:1.1rem; color: var(--muted); }
+    .who__text strong { display:block; font-weight:600; letter-spacing:-.01em; }
+    .who__text span { font-size:.84rem; color: var(--muted); }
+    .who-ava {
+      width:44px; height:44px; border-radius:50%; object-fit:cover; background: var(--panel-2); border:1px solid var(--line);
+      display:inline-flex; align-items:center; justify-content:center; font-weight:700; color: var(--muted);
+    }
     .nav { display:flex; gap:6px; margin:0 0 18px; flex-wrap:wrap; }
     .tab { padding:8px 14px; border-radius:999px; border:1px solid transparent; background:transparent; color: var(--muted); cursor:pointer; }
     .tab:hover { color: var(--paper); }
     .tab[aria-selected="true"] { background: var(--panel-2); border-color: var(--line); color: var(--paper); font-weight:500; }
-    .nav-leave { margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px; border:1px solid var(--signal); color: var(--signal); text-decoration:none; font-weight:500; }
-    .nav-leave:hover { background: var(--panel-2); }
+    .nav-leave { margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:999px; border:1px solid var(--signal); color: var(--signal); text-decoration:none; font-weight:600; }
     .grid { display:grid; gap:16px; grid-template-columns:1fr; }
     @media (min-width:820px){ .grid{ grid-template-columns:1.05fr .95fr; } }
     .status { padding:20px 22px; }
@@ -183,33 +181,18 @@
     .punches li:first-child { border-top:0; }
     .punches .p-when { font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:.95rem; width:5.4em; flex:none; }
     .punches .p-what { flex:1; min-width:0; }
+    .punches .p-tag { font-size:.8rem; color: var(--muted); }
     .empty { color: var(--muted); font-size:.93rem; margin:0; padding:6px 0; }
     .scroller { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     table { width:100%; border-collapse:collapse; font-size:.93rem; min-width:600px; }
     th, td { text-align:left; padding:10px 12px; border-top:1px solid var(--line-soft); white-space:nowrap; }
     th { color: var(--muted); font-weight:500; font-size:.85rem; border-top:0; }
     td.num, th.num { text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }
-    .brand { padding:2px 0 18px; text-align:center; }
-    .brand-home { display:block; color:inherit; text-decoration:none; }
-    .brand-home:hover { opacity:.86; }
-    .brand-mark { display:block; margin:0 auto 12px; width:76px; height:76px; filter: drop-shadow(0 0 26px rgba(0,191,166,.35)); }
-    .brand-title { margin:0; font-family: var(--display); font-weight:800; letter-spacing:-.03em; line-height:1.12; font-size:clamp(1.55rem,5.4vw,2.9rem); color:var(--paper); }
-    .brand-rule { display:block; width:min(340px,64%); height:3px; margin:13px auto 0; border-radius:3px; background:linear-gradient(90deg,transparent,var(--signal) 25%,var(--signal) 75%,transparent); }
-    .brand-sub { margin:8px 0 0; font-size:clamp(.78rem,2.3vw,1.02rem); font-weight:600; letter-spacing:.36em; text-indent:.36em; text-transform:uppercase; color:var(--muted); }
-    .sd-ring{fill:none;stroke:var(--signal);stroke-width:7;stroke-linecap:round;stroke-dasharray:654;animation:sd-draw 1.4s cubic-bezier(.65,0,.35,1) both}
-    .sd-orbit{fill:none;stroke-width:7;stroke-linecap:round;transform-box:view-box;transform-origin:50% 50%}
-    .sd-orbit--a{stroke:var(--signal);animation:sd-spin-a 16s linear infinite,sd-fade .8s ease-out .25s both}
-    .sd-orbit--b{stroke:var(--alert);animation:sd-spin-b 22s linear infinite,sd-fade .8s ease-out .45s both}
-    .sd-dotwrap{transform-box:fill-box;transform-origin:center;animation:sd-pop .7s cubic-bezier(.2,.9,.3,1.5) .5s both}
-    .sd-halo{fill:none;stroke:var(--mark-lime);stroke-width:5;opacity:0;transform-box:fill-box;transform-origin:center;animation:sd-ping 2.4s ease-out 1.3s infinite}
-    .sd-dot{fill:var(--mark-lime);transform-box:fill-box;transform-origin:center;animation:sd-pulse 2.4s ease-in-out 1.3s infinite}
-    @keyframes sd-spin-a{to{transform:rotate(360deg)}}
-    @keyframes sd-spin-b{to{transform:rotate(-360deg)}}
-    @keyframes sd-fade{from{opacity:0}to{opacity:1}}
-    @keyframes sd-draw{from{stroke-dashoffset:654}to{stroke-dashoffset:0}}
-    @keyframes sd-pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
-    @keyframes sd-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.78}}
-    @keyframes sd-ping{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(3.4);opacity:0}}
+    .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px; }
+    .toolbar .field{ margin:0; flex:1 1 160px; }
+    .totals{ display:flex; gap:26px; flex-wrap:wrap; margin:0 0 18px; }
+    .totals div span{ display:block; font-size:.84rem; color:var(--muted); }
+    .totals div strong{ font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:1.5rem; font-weight:500; }
     .foot{ margin-top:64px; padding:28px 0 8px; border-top:1px solid var(--line-soft); }
     .foot__in{ display:flex; flex-wrap:wrap; gap:16px 24px; align-items:center; justify-content:space-between; }
     .foot-brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color: var(--paper); font-family: var(--display); font-weight:800; font-size:18px; letter-spacing:-.02em; }
@@ -217,8 +200,13 @@
     .foot small{ color: var(--muted); font-size:13.5px; }
     @media (max-width:760px){
       .wrap { padding:14px 12px 56px; }
-      .brand-mark { width:60px; height:60px; }
       .block, .status, .auth-card{ padding:15px; }
+      .toolbar{ gap:8px; }
+      .toolbar .field{ flex:1 1 100%; }
+      .topbar{ gap:10px; }
+      .tab{ padding:7px 12px; font-size:.9rem; }
+      .nav-leave{ margin-left:0; }
+      .elapsed{ font-size:2.1rem; }
       input, select, textarea { font-size:16px; }
     }
   </style>
@@ -226,17 +214,9 @@
 <body>
   <div class="wrap">
     <header class="brand">
-      <a class="brand-home" href="index.html" title="Back to the Sundial site">
-        <svg class="brand-mark" viewBox="0 0 240 240" role="img" aria-label="Sundial animated mark: two orbits rotating around a pulsing dot">
-          <circle class="sd-ring" cx="120" cy="120" r="104"></circle>
-          <g class="sd-orbit sd-orbit--a"><ellipse cx="120" cy="120" rx="95" ry="44" transform="rotate(-44 120 120)"></ellipse></g>
-          <g class="sd-orbit sd-orbit--b"><ellipse cx="120" cy="120" rx="95" ry="44" transform="rotate(44 120 120)"></ellipse></g>
-          <g class="sd-dotwrap">
-            <circle class="sd-halo" cx="120" cy="120" r="16"></circle>
-            <circle class="sd-dot" cx="120" cy="120" r="16"></circle>
-          </g>
-        </svg>
-        <h1 class="brand-title">Sundial Solstice</h1>
+      <a class="brand-home" href="index.html" title="Prestige Dealer Alliance Timelogs">
+        <img class="brand-mark" src="logo.png" alt="Prestige Dealer Alliance logo">
+        <h1 class="brand-title">Prestige Dealer Alliance</h1>
         <p class="brand-sub">Timelogs</p>
         <span class="brand-rule" aria-hidden="true"></span>
       </a>
@@ -275,10 +255,10 @@
     <section id="app" class="hidden">
       <div class="topbar">
         <div class="who">
-          <span id="whoAva" aria-label="user avatar"></span>
+          <span class="who-ava" id="whoAva">JD</span>
           <div class="who__text">
-            <strong id="whoName">Demo User</strong>
-            <span id="whoRole">@demo · employee</span>
+            <strong id="whoName">John Doe</strong>
+            <span id="whoRole">Operations · employee</span>
           </div>
         </div>
         <button class="btn btn-quiet" id="btnPin">Change passcode</button>
@@ -289,7 +269,8 @@
         <button class="tab" role="tab" data-view="clock" aria-selected="true">Clock</button>
         <button class="tab" role="tab" data-view="sheet" aria-selected="false">My timesheet</button>
         <button class="tab" role="tab" data-view="team" aria-selected="false">Team</button>
-        <a class="nav-leave" href="https://example.com" target="_blank" rel="noopener noreferrer">Leave Request Form <span aria-hidden="true">↗</span></a>
+        <button class="tab" role="tab" data-view="schedules" aria-selected="false">Schedules</button>
+        <button class="tab" role="tab" data-view="employees" aria-selected="false">My Info</button>
       </div>
 
       <div id="vClock">
@@ -297,8 +278,8 @@
           <div class="panel status">
             <span class="readout hero-time" style="font-size:clamp(2.6rem,11vw,4rem)"><span id="hh">--:--</span><span class="hero-sec" id="ss">:--</span></span>
             <p class="hero-date" id="today" style="text-align:left;margin-top:8px"></p>
-            <p class="hero-date" id="schedLine" style="text-align:left;margin-top:2px"></p>
-            <p class="hero-date" id="payLine" style="text-align:left;margin-top:2px"></p>
+            <p class="hero-date" id="schedLine" style="text-align:left;margin-top:2px">Schedule: 9:00 AM – 5:00 PM</p>
+            <p class="hero-date" id="payLine" style="text-align:left;margin-top:2px">Pay period: current week</p>
             <div style="margin-top:18px">
               <span class="chip chip-off" id="chip"><i class="dot"></i><span id="chipText">Off the clock</span></span>
             </div>
@@ -316,6 +297,7 @@
             <ul class="punches">
               <li><span class="p-when">08:00</span><span class="p-what">Clocked in</span><span class="p-tag">manual</span></li>
               <li><span class="p-when">12:15</span><span class="p-what">Break</span><span class="p-tag">lunch</span></li>
+              <li><span class="p-when">17:00</span><span class="p-what">Clocked out</span><span class="p-tag">manual</span></li>
             </ul>
           </div>
         </div>
@@ -323,21 +305,33 @@
 
       <div id="vSheet" class="hidden">
         <div class="panel block">
-          <div class="toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+          <div class="toolbar">
             <label class="field"><span>From</span><input type="date"></label>
             <label class="field"><span>To</span><input type="date"></label>
             <button class="btn" type="button">This week</button>
             <button class="btn btn-in" type="button">Add shift</button>
             <button class="btn" type="button">Export timesheet</button>
           </div>
+          <div class="totals">
+            <div><span>Days worked</span><strong>5</strong></div>
+            <div><span>Absent</span><strong>0</strong></div>
+            <div><span>Break time</span><strong>1:00</strong></div>
+            <div><span>Offline</span><strong>0:00</strong></div>
+            <div><span>Total worked</span><strong>40:00</strong></div>
+          </div>
           <div class="scroller">
             <table>
               <thead>
-                <tr><th>Date</th><th>Status</th><th>Clock in</th><th>Clock out</th><th class="num">Break 1</th><th class="num">Break 2</th><th class="num">Lunch</th><th class="num">Worked</th></tr>
+                <tr>
+                  <th>Date</th><th>Status</th><th>Clock in</th><th>Clock out</th><th class="num">Worked</th><th></th>
+                </tr>
               </thead>
               <tbody>
-                <tr><td>Mon 10/05</td><td><span class="chip chip-in">On time</span></td><td>08:00</td><td>17:00</td><td class="num">0:15</td><td class="num">0:15</td><td class="num">0:30</td><td class="num">8:00</td></tr>
-                <tr><td>Tue 10/06</td><td><span class="chip chip-brk">Late (00:05:00)</span></td><td>08:05</td><td>17:00</td><td class="num">0:15</td><td class="num">0:15</td><td class="num">0:30</td><td class="num">7:55</td></tr>
+                <tr><td>Mon 10/05</td><td><span class="chip chip-in">On time</span></td><td>08:00</td><td>17:00</td><td class="num">8:00</td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">Edit</button></td></tr>
+                <tr><td>Tue 10/06</td><td><span class="chip chip-brk">Late (00:05)</span></td><td>08:05</td><td>17:00</td><td class="num">7:55</td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">Edit</button></td></tr>
+                <tr><td>Wed 10/07</td><td><span class="chip chip-in">On time</span></td><td>08:00</td><td>17:00</td><td class="num">8:00</td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">Edit</button></td></tr>
+                <tr><td>Thu 10/08</td><td><span class="chip chip-in">On time</span></td><td>08:00</td><td>17:00</td><td class="num">8:00</td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">Edit</button></td></tr>
+                <tr><td>Fri 10/09</td><td><span class="chip chip-in">On time</span></td><td>08:00</td><td>17:00</td><td class="num">8:00</td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">Edit</button></td></tr>
               </tbody>
             </table>
           </div>
@@ -349,12 +343,47 @@
           <h2>People</h2>
           <div class="scroller">
             <table>
-              <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr></thead>
+              <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Schedule (EST)</th><th>Status</th><th></th></tr></thead>
               <tbody>
-                <tr><td>Demo User</td><td>@demo</td><td>employee</td><td><span class="chip chip-in">clocked in</span></td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px">Edit</button></td></tr>
+                <tr><td>John Doe</td><td>@john</td><td>Ops</td><td>9:00 AM – 5:00 PM</td><td><span class="chip chip-in">Clocked in</span></td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">View</button></td></tr>
+                <tr><td>Maria Santos</td><td>@maria</td><td>Support</td><td>8:30 AM – 4:30 PM</td><td><span class="chip chip-off">Off the clock</span></td><td><button class="btn btn-quiet" type="button" style="padding:6px 10px; font-size:.78rem">View</button></td></tr>
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <div id="vSchedules" class="hidden">
+        <div class="panel block">
+          <div class="toolbar">
+            <button class="btn btn-quiet" type="button">← Prev</button>
+            <strong style="margin-right:auto; font-size:1.05rem;">October 2026</strong>
+            <button class="btn btn-quiet" type="button">This month</button>
+            <button class="btn btn-quiet" type="button">Next →</button>
+          </div>
+          <div class="scroller">
+            <table>
+              <thead>
+                <tr><th>Person</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>John Doe</td><td>9-5</td><td>9-5</td><td>9-5</td><td>9-5</td><td>9-5</td><td>Off</td><td>Off</td></tr>
+                <tr><td>Maria Santos</td><td>8:30-4:30</td><td>8:30-4:30</td><td>8:30-4:30</td><td>8:30-4:30</td><td>8:30-4:30</td><td>Off</td><td>Off</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="vEmployees" class="hidden">
+        <div class="panel block">
+          <h2>Employee information</h2>
+          <div class="field"><span>Username</span><input type="text" value="john" disabled></div>
+          <div class="field"><span>First name</span><input type="text" value="John"></div>
+          <div class="field"><span>Last name</span><input type="text" value="Doe"></div>
+          <div class="field"><span>Role</span><input type="text" value="Operations"></div>
+          <div class="field"><span>Phone</span><input type="tel" value="(555) 123-4567"></div>
+          <button class="btn btn-in" type="button">Save changes</button>
         </div>
       </div>
     </section>
@@ -371,33 +400,50 @@
   </div>
 
   <script>
-    (function(){
+    (function () {
       const authHH = document.getElementById('authHH');
       const authSS = document.getElementById('authSS');
       const authDate = document.getElementById('authDate');
       const auth = document.getElementById('auth');
       const app = document.getElementById('app');
+      const tabs = Array.from(document.querySelectorAll('.tab'));
+      const views = {
+        clock: document.getElementById('vClock'),
+        sheet: document.getElementById('vSheet'),
+        team: document.getElementById('vTeam'),
+        schedules: document.getElementById('vSchedules'),
+        employees: document.getElementById('vEmployees')
+      };
 
-      function pad(v){ return String(v).padStart(2,'0'); }
-      function updateClock(){
+      function updateClock() {
         const now = new Date();
-        const hh = pad(now.getHours());
-        const mm = pad(now.getMinutes());
-        const ss = pad(now.getSeconds());
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
         authHH.textContent = `${hh}:${mm}`;
         authSS.textContent = `:${ss}`;
         authDate.textContent = now.toLocaleString([], { weekday:'long', month:'long', day:'numeric', year:'numeric' });
       }
 
-      document.getElementById('authForm').addEventListener('submit', function(e){
+      document.getElementById('authForm').addEventListener('submit', function (e) {
         e.preventDefault();
         auth.classList.add('hidden');
         app.classList.remove('hidden');
       });
 
-      document.getElementById('btnOut').addEventListener('click', function(){
+      document.getElementById('btnOut').addEventListener('click', function () {
         app.classList.add('hidden');
         auth.classList.remove('hidden');
+      });
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', function () {
+          const target = tab.dataset.view;
+          tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+          Object.entries(views).forEach(([key, el]) => {
+            el.classList.toggle('hidden', key !== target);
+          });
+        });
       });
 
       updateClock();
